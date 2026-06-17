@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/Card";
 import { StatusBadge, StatusDot } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { AiInterpretation } from "@/components/AiInterpretation";
 import { labOrder, labs } from "@/lib/mock";
 
 export function LabsScreen() {
@@ -134,6 +135,9 @@ export function LabsScreen() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      {/* ИИ-интерпретация выбранного показателя */}
+      <AiInterpretation series={series} />
 
       {/* История */}
       <Card>
