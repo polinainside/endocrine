@@ -222,3 +222,25 @@ export async function setMedTaken(client: SupabaseClient, id: string, taken: boo
   const { error } = await client.from("meds").update({ taken }).eq("id", id);
   if (error) throw error;
 }
+
+// Сохраняет отредактированный профиль (под RLS — только своя строка).
+export async function updateProfile(client: SupabaseClient, userId: string, p: Patient): Promise<void> {
+  const { error } = await client
+    .from("profiles")
+    .update({
+      name: p.name,
+      full_name: p.fullName,
+      initials: p.initials,
+      age: p.age,
+      sex: p.sex,
+      birth_date: p.birthDate,
+      height: p.height,
+      weight: p.weight,
+      bmi: p.bmi,
+      blood_type: p.bloodType,
+      allergies: p.allergies,
+      diagnoses: p.diagnoses,
+    })
+    .eq("user_id", userId);
+  if (error) throw error;
+}

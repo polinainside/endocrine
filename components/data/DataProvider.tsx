@@ -3,12 +3,20 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Loader2, RotateCcw } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
-import { loadAppData, insertMeal, setMedTaken, type AppData } from "@/lib/supabase/data";
+import {
+  loadAppData,
+  insertMeal,
+  setMedTaken,
+  updateProfile,
+  type AppData,
+  type Patient,
+} from "@/lib/supabase/data";
 import type { Meal } from "@/lib/mock";
 
 type DataContextValue = AppData & {
   addMeal: (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => Promise<void>;
   toggleMed: (id: string) => Promise<void>;
+  saveProfile: (patient: Patient) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -84,7 +92,14 @@ export function DataProvider({ userId, children }: { userId: string; children: R
     }
   };
 
+  const saveProfile = async (patient: Patient) => {
+    await updateProfile(supabase, userId, patient);
+    setData((d) => (d ? { ...d, patient } : d));
+  };
+
   return (
-    <DataContext.Provider value={{ ...data, addMeal, toggleMed, signOut }}>{children}</DataContext.Provider>
+    <DataContext.Provider value={{ ...data, addMeal, toggleMed, saveProfile, signOut }}>
+      {children}
+    </DataContext.Provider>
   );
 }

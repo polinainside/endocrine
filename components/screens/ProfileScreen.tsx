@@ -13,12 +13,19 @@ import {
   Droplet,
   TriangleAlert,
   LogOut,
+  Pencil,
 } from "lucide-react";
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { useData } from "@/components/data/DataProvider";
+import { EditProfileScreen } from "@/components/screens/EditProfileScreen";
 
 export function ProfileScreen({ onBack }: { onBack: () => void }) {
   const { patient, doctor, sensor, signOut } = useData();
+  const [editing, setEditing] = useState(false);
+
+  if (editing) return <EditProfileScreen onBack={() => setEditing(false)} />;
+
   return (
     <div className="-mx-4 -mt-4 flex flex-col">
       {/* Шапка */}
@@ -27,6 +34,13 @@ export function ProfileScreen({ onBack }: { onBack: () => void }) {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-[17px] font-semibold text-ink">Личный кабинет</h1>
+        <button
+          onClick={() => setEditing(true)}
+          className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-brand"
+        >
+          <Pencil className="h-4 w-4" />
+          Изменить
+        </button>
       </header>
 
       <div className="flex flex-col gap-4 px-4 pb-4 pt-4">
