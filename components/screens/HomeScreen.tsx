@@ -23,6 +23,7 @@ import {
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricTile } from "@/components/ui/MetricTile";
+import { RingGauge } from "@/components/ui/RingGauge";
 import { MedsEditScreen } from "@/components/screens/MedsEditScreen";
 import { useData } from "@/components/data/DataProvider";
 import { aiHint, glucoseNow, glucoseToday, type Trend } from "@/lib/mock";
@@ -32,6 +33,18 @@ const trendIcon: Record<Trend, LucideIcon> = {
   down: ArrowDownRight,
   flat: ArrowRight,
 };
+
+// «Живая» точка в конце кривой глюкозы — мягкое свечение + точка с белой обводкой.
+const GLUCOSE_LAST = glucoseToday.length - 1;
+function GlucoseDot({ cx, cy, index }: { cx?: number; cy?: number; index?: number }) {
+  if (index !== GLUCOSE_LAST || typeof cx !== "number" || typeof cy !== "number") return <g />;
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={11} fill="#E36C39" opacity={0.16} />
+      <circle cx={cx} cy={cy} r={5} fill="#E36C39" stroke="#fff" strokeWidth={1.5} />
+    </g>
+  );
+}
 
 const todayLabel = new Intl.DateTimeFormat("ru-RU", {
   day: "numeric",
@@ -57,9 +70,9 @@ export function HomeScreen() {
         </div>
       </header>
 
-      {/* Карточка глюкозы */}
+      {/* Карточка глюкозы — герой-блок */}
       <Card>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[13px] font-medium text-muted">Глюкоза сейчас</p>
             <div className="mt-1 flex items-end gap-2">
@@ -69,8 +82,15 @@ export function HomeScreen() {
               <span className="mb-1.5 text-[15px] text-muted">{glucoseNow.unit}</span>
               <TrendIcon className="mb-1.5 h-5 w-5 text-ok" strokeWidth={2.4} />
             </div>
+            <div className="mt-2.5">
+              <StatusBadge status={glucoseNow.status} />
+            </div>
           </div>
-          <StatusBadge status={glucoseNow.status} />
+          {/* Кольцо «время в целевом диапазоне» */}
+          <div className="flex flex-col items-center">
+            <RingGauge value={glucoseNow.timeInRange} caption="в норме" />
+            <span className="mt-1.5 text-[11px] leading-tight text-muted">в диапазоне</span>
+          </div>
         </div>
 
         {/* Живой индикатор автоматического датчика */}
@@ -85,9 +105,9 @@ export function HomeScreen() {
         </div>
 
         {/* Мини-график за день */}
-        <div className="-mx-1 mt-3 h-24">
+        <div className="-mx-1 mt-3 h-28">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={glucoseToday} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+            <AreaChart data={glucoseToday} margin={{ top: 8, right: 8, bottom: 0, left: 4 }}>
               <defs>
                 <linearGradient id="glucoseFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#E36C39" stopOpacity={0.22} />
@@ -112,15 +132,11 @@ export function HomeScreen() {
                 stroke="#E36C39"
                 strokeWidth={2.5}
                 fill="url(#glucoseFill)"
-                dot={false}
+                dot={<GlucoseDot />}
+                activeDot={{ r: 5 }}
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className="mt-2 flex items-center justify-between rounded-btn bg-brand-soft/60 px-3 py-2">
-          <span className="text-[13px] text-muted">Время в целевом диапазоне сегодня</span>
-          <span className="text-[15px] font-semibold text-brand">{glucoseNow.timeInRange}%</span>
         </div>
       </Card>
 
