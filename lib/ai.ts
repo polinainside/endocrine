@@ -85,6 +85,51 @@ function statusRu(s: InterpretLabPoint["status"]): string {
   return "тревога";
 }
 
+// ── Распознавание еды по фото (Mistral Vision) ──────────────────────────────
+
+export type RecognizedMeal = {
+  isFood: boolean;
+  name: string;
+  kcal: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  confidence: "low" | "medium" | "high";
+};
+
+// Промпт для vision-модели. Кладётся рядом с картинкой в одном user-сообщении.
+export const VISION_PROMPT = `Ты — помощник по подсчёту калорий в дневнике питания. На фото — приём пищи.
+Определи блюдо и оцени пищевую ценность ВСЕЙ видимой порции.
+
+Правила:
+- name — коротко по-русски (2–5 слов), например «Греческий салат с тунцом».
+- kcal, protein, fat, carbs — целые числа на всю порцию на фото. Это приблизительная оценка, не точное измерение.
+- confidence: high — блюдо явно видно и понятно; medium — частично; low — плохо видно или трудно оценить.
+- Если на фото НЕ еда или определить невозможно — верни isFood:false и нули.
+
+Верни СТРОГО валидный JSON без markdown по схеме:
+{"isFood":true,"name":"","kcal":0,"protein":0,"fat":0,"carbs":0,"confidence":"medium"}`;
+
+// Защитный парсинг + клампинг (модель может вернуть строки/мусор/огромные числа).
+export function parseRecognizedMeal(raw: unknown): RecognizedMeal {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const num = (v: unknown, max: number) => {
+    const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : NaN;
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return Math.min(Math.round(n), max);
+  };
+  const conf = o.confidence;
+  return {
+    isFood: o.isFood !== false,
+    name: typeof o.name === "string" && o.name.trim() ? o.name.trim().slice(0, 80) : "Блюдо",
+    kcal: num(o.kcal, 5000),
+    protein: num(o.protein, 1000),
+    fat: num(o.fat, 1000),
+    carbs: num(o.carbs, 1000),
+    confidence: conf === "low" || conf === "high" ? conf : "medium",
+  };
+}
+
 // Защитный парсинг ответа модели в InterpretResult.
 export function parseResult(raw: unknown): InterpretResult {
   const obj = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;

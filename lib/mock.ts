@@ -176,6 +176,8 @@ export type Meal = {
   carbs: number;
   time: string;
   emoji: string;
+  // Для блюд, добавленных по фото: data-URL миниатюры (показывается вместо эмодзи).
+  photo?: string;
 };
 
 export const nutritionGoal = {
@@ -216,25 +218,6 @@ export const meals: Meal[] = [
     emoji: "🍎",
   },
 ];
-
-// Результат «распознавания по фото» — заранее заданный объект.
-export const recognizedMeal: Meal = {
-  id: "recognized",
-  name: "Тарелка с курицей и овощами",
-  kcal: 420,
-  protein: 32,
-  fat: 12,
-  carbs: 45,
-  time: "19:20",
-  emoji: "🍗",
-};
-
-// Фейковое «распознавание» с задержкой ~1с.
-export function recognizeMeal(): Promise<Meal> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ ...recognizedMeal, id: `meal-${Date.now()}` }), 1100);
-  });
-}
 
 // ── Препараты ───────────────────────────────────────────────────────────────
 
