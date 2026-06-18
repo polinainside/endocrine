@@ -219,6 +219,82 @@ export const meals: Meal[] = [
   },
 ];
 
+// Дневник питания за неделю. day 0 — сегодня (в процессе), дальше в прошлое.
+// short — подпись для графика. Данные рассказывают историю: пара «срывных» дней
+// с высокими углеводами, остальное под контролем — ИИ связывает это с анализами.
+export type DayLog = {
+  id: string;
+  label: string;
+  short: string;
+  meals: Meal[];
+};
+
+export const weekLogSeed: DayLog[] = [
+  { id: "d0", label: "Сегодня", short: "Сег", meals },
+  {
+    id: "d1",
+    label: "Вчера",
+    short: "Вчр",
+    meals: [
+      { id: "d1m1", name: "Творог с орехами", kcal: 280, protein: 26, fat: 14, carbs: 12, time: "08:40", emoji: "🥛" },
+      { id: "d1m2", name: "Куриный суп с овощами", kcal: 320, protein: 24, fat: 11, carbs: 24, time: "13:30", emoji: "🍲" },
+      { id: "d1m3", name: "Запечённая рыба с брокколи", kcal: 430, protein: 38, fat: 18, carbs: 16, time: "19:00", emoji: "🐟" },
+      { id: "d1m4", name: "Кефир", kcal: 120, protein: 8, fat: 4, carbs: 12, time: "21:30", emoji: "🥛" },
+    ],
+  },
+  {
+    id: "d2",
+    label: "Суббота",
+    short: "Сб",
+    meals: [
+      { id: "d2m1", name: "Сырники со сметаной", kcal: 520, protein: 22, fat: 26, carbs: 48, time: "10:00", emoji: "🥞" },
+      { id: "d2m2", name: "Паста карбонара", kcal: 680, protein: 26, fat: 30, carbs: 78, time: "15:00", emoji: "🍝" },
+      { id: "d2m3", name: "Кусок торта", kcal: 420, protein: 5, fat: 22, carbs: 52, time: "18:30", emoji: "🍰" },
+    ],
+  },
+  {
+    id: "d3",
+    label: "Пятница",
+    short: "Пт",
+    meals: [
+      { id: "d3m1", name: "Омлет с овощами", kcal: 300, protein: 20, fat: 20, carbs: 8, time: "08:30", emoji: "🍳" },
+      { id: "d3m2", name: "Гречка с курицей", kcal: 460, protein: 34, fat: 12, carbs: 52, time: "13:30", emoji: "🍗" },
+      { id: "d3m3", name: "Салат с авокадо", kcal: 320, protein: 8, fat: 26, carbs: 14, time: "19:00", emoji: "🥑" },
+    ],
+  },
+  {
+    id: "d4",
+    label: "Четверг",
+    short: "Чт",
+    meals: [
+      { id: "d4m1", name: "Овсянка с бананом", kcal: 360, protein: 10, fat: 7, carbs: 64, time: "08:30", emoji: "🥣" },
+      { id: "d4m2", name: "Бургер с картофелем фри", kcal: 820, protein: 30, fat: 42, carbs: 78, time: "14:00", emoji: "🍔" },
+      { id: "d4m3", name: "Шаурма", kcal: 540, protein: 26, fat: 26, carbs: 48, time: "20:00", emoji: "🌯" },
+    ],
+  },
+  {
+    id: "d5",
+    label: "Среда",
+    short: "Ср",
+    meals: [
+      { id: "d5m1", name: "Йогурт без сахара с ягодами", kcal: 220, protein: 14, fat: 6, carbs: 26, time: "08:30", emoji: "🫐" },
+      { id: "d5m2", name: "Тушёная индейка с овощами", kcal: 420, protein: 40, fat: 14, carbs: 28, time: "13:30", emoji: "🦃" },
+      { id: "d5m3", name: "Овощной салат с нутом", kcal: 360, protein: 14, fat: 16, carbs: 38, time: "19:00", emoji: "🥗" },
+    ],
+  },
+  {
+    id: "d6",
+    label: "Вторник",
+    short: "Вт",
+    meals: [
+      { id: "d6m1", name: "Бутерброды с колбасой", kcal: 480, protein: 16, fat: 28, carbs: 42, time: "08:30", emoji: "🥪" },
+      { id: "d6m2", name: "Плов", kcal: 620, protein: 22, fat: 24, carbs: 78, time: "14:00", emoji: "🍚" },
+      { id: "d6m3", name: "Печенье к чаю", kcal: 340, protein: 4, fat: 14, carbs: 50, time: "17:00", emoji: "🍪" },
+      { id: "d6m4", name: "Куриная грудка с гречкой", kcal: 420, protein: 38, fat: 9, carbs: 48, time: "20:00", emoji: "🍗" },
+    ],
+  },
+];
+
 // ── Препараты ───────────────────────────────────────────────────────────────
 
 export type Med = {

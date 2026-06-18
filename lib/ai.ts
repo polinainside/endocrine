@@ -192,3 +192,126 @@ export function parseResult(raw: unknown): InterpretResult {
     seeDoctor: obj.seeDoctor === true,
   };
 }
+
+// ── Анализ питания за неделю × показатели анализов (Mistral) ─────────────────
+
+export type NutritionDay = {
+  label: string;
+  kcal: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+};
+export type LabSnapshot = {
+  title: string;
+  unit: string;
+  latest: number;
+  target: string;
+  trend: "improving" | "worsening" | "stable";
+};
+export type NutritionInsightRequest = {
+  goalKcal: number;
+  days: NutritionDay[];
+  labs: LabSnapshot[];
+  patient?: { age?: number; sex?: string; diagnoses?: string[] };
+};
+
+export type InsightLink = { text: string; tone: "good" | "watch" };
+export type NutritionInsight = {
+  summary: string;
+  links: InsightLink[];
+  tips: string[];
+  seeDoctor: boolean;
+};
+
+export const NUTRITION_SYSTEM_PROMPT = `Ты — ассистент-нутрициолог в приложении пациента эндокринологического профиля. Тебе дают дневник питания за неделю и динамику анализов. Задача — наглядно сопоставить питание с показателями и дать практические советы по образу жизни.
+
+ЖЁСТКИЕ ПРАВИЛА (нарушать нельзя):
+- Ты НЕ врач. НЕ ставь диагноз, НЕ оценивай тяжесть болезни.
+- НЕ назначай лекарства, дозировки и схемы приёма; не отменяй назначения врача.
+- Только питание, активность, режим. Связи описывай осторожно («может быть связано», «вероятно»), без гарантий причинно-следственной связи.
+- Если показатель тревожный или питание явно вредит — мягко порекомендуй обсудить с лечащим врачом.
+- По-русски, тёплым человеческим тоном, без канцелярита и без рекламных эпитетов.
+- Опирайся только на переданные данные. Если данных мало — так и скажи.
+
+ФОРМАТ ОТВЕТА — строго валидный JSON без markdown:
+{
+  "summary": "2–3 предложения: общая картина питания за неделю и как она соотносится с анализами",
+  "links": [{"text":"конкретная связь питания и показателя","tone":"good|watch"}],
+  "tips": ["2–4 практических совета по питанию/режиму, без лекарств"],
+  "seeDoctor": true|false
+}
+tone: good — питание поддерживает хорошую динамику показателя; watch — на что обратить внимание.
+seeDoctor = true только если показатели в тревожной зоне.`;
+
+export function buildNutritionPrompt(req: NutritionInsightRequest): string {
+  const { goalKcal, days, labs, patient } = req;
+  const n = Math.max(days.length, 1);
+  const avg = days.reduce(
+    (a, d) => ({
+      kcal: a.kcal + d.kcal / n,
+      protein: a.protein + d.protein / n,
+      fat: a.fat + d.fat / n,
+      carbs: a.carbs + d.carbs / n,
+    }),
+    { kcal: 0, protein: 0, fat: 0, carbs: 0 },
+  );
+  const round = (x: number) => Math.round(x);
+
+  const daysLines = days
+    .map((d) => `${d.label}: ${d.kcal} ккал (Б ${d.protein} / Ж ${d.fat} / У ${d.carbs} г)`)
+    .join("\n");
+  const labsLines = labs
+    .map((l) => `${l.title}: ${l.latest} ${l.unit} (${l.target}; динамика ${trendRu(l.trend)})`)
+    .join("\n");
+  const patientLine = patient
+    ? `Пациент: ${[
+        patient.age ? `${patient.age} лет` : null,
+        patient.sex,
+        patient.diagnoses?.length ? `диагнозы — ${patient.diagnoses.join(", ")}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ")}.`
+    : "";
+
+  return `${patientLine}
+
+Цель по калориям: ${goalKcal} ккал/день.
+Питание по дням (от свежего к старому):
+${daysLines}
+
+В среднем за период: ${round(avg.kcal)} ккал/день, Б ${round(avg.protein)} / Ж ${round(avg.fat)} / У ${round(avg.carbs)} г.
+
+Последние анализы:
+${labsLines}
+
+Свяжи питание с показателями и дай советы. Верни только JSON по схеме.`;
+}
+
+function trendRu(t: LabSnapshot["trend"]): string {
+  if (t === "improving") return "улучшение";
+  if (t === "worsening") return "ухудшение";
+  return "стабильно";
+}
+
+export function parseNutritionInsight(raw: unknown): NutritionInsight {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const links: InsightLink[] = Array.isArray(o.links)
+    ? o.links
+        .map((l) => {
+          const li = (typeof l === "object" && l !== null ? l : {}) as Record<string, unknown>;
+          const text = typeof li.text === "string" ? li.text.trim() : "";
+          return { text, tone: li.tone === "good" ? "good" : "watch" } as InsightLink;
+        })
+        .filter((l) => l.text.length > 0)
+        .slice(0, 6)
+    : [];
+  return {
+    summary: typeof o.summary === "string" ? o.summary.trim() : "",
+    links,
+    tips: Array.isArray(o.tips)
+      ? o.tips.filter((t): t is string => typeof t === "string" && t.trim().length > 0).slice(0, 4)
+      : [],
+    seeDoctor: o.seeDoctor === true,
+  };
+}
