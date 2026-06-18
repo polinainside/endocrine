@@ -14,8 +14,22 @@ export function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Берём реальные значения из формы (надёжнее на мобильных, чем только state).
+    const fd = new FormData(e.currentTarget);
+    const em = (String(fd.get("email") ?? "") || email).trim().toLowerCase();
+    const pw = String(fd.get("password") ?? "") || password;
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+      setError("Введите корректный email, например anna@gmail.com");
+      return;
+    }
+    if (pw.length < 6) {
+      setError("Пароль должен быть не короче 6 символов.");
+      return;
+    }
+
     setBusy(true);
     setError("");
     try {
@@ -24,7 +38,7 @@ export function LoginScreen() {
         const res = await fetch("/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email: em, password: pw }),
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -33,7 +47,7 @@ export function LoginScreen() {
           return;
         }
       }
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: em, password: pw });
       if (signInError) {
         setError(
           /invalid login/i.test(signInError.message)
@@ -63,10 +77,13 @@ export function LoginScreen() {
 
       <form onSubmit={submit} className="flex flex-col gap-3">
         <input
-          type="email"
+          type="text"
+          name="email"
           inputMode="email"
           autoComplete="email"
-          required
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -74,8 +91,8 @@ export function LoginScreen() {
         />
         <input
           type="password"
+          name="password"
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
-          required
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
