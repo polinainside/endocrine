@@ -12,14 +12,11 @@ import {
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import {
-  chatSeed,
-  doctor,
-  doctorAutoReply,
-  type ChatMessage,
-} from "@/lib/mock";
+import { chatSeed, doctorAutoReply, type ChatMessage } from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
 
 export function DoctorScreen() {
+  const { doctor } = useData();
   const [chatOpen, setChatOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -102,6 +99,7 @@ export function DoctorScreen() {
 }
 
 function ChatView({ onBack }: { onBack: () => void }) {
+  const { doctor } = useData();
   const [messages, setMessages] = useState<ChatMessage[]>(chatSeed);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);

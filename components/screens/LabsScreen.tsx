@@ -17,10 +17,11 @@ import { StatusBadge, StatusDot } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { AiInterpretation } from "@/components/AiInterpretation";
-import { labOrder, labs } from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
 
 export function LabsScreen() {
-  const [activeKey, setActiveKey] = useState<string>("hba1c");
+  const { labs, labOrder } = useData();
+  const [activeKey, setActiveKey] = useState<string>(labOrder[0]);
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const series = labs[activeKey];

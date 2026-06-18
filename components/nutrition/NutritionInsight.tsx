@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { labOrder, labs, nutritionGoal, patient, type DayLog } from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
+import { nutritionGoal, type DayLog, type LabSeries } from "@/lib/mock";
 import type { LabSnapshot, NutritionInsight as Insight } from "@/lib/ai";
 
 type Phase = "idle" | "loading" | "done" | "error";
@@ -29,7 +30,7 @@ function dayTotals(d: DayLog) {
 }
 
 // Снимок анализов для модели: последнее значение + направление динамики.
-function labSnapshots(): LabSnapshot[] {
+function labSnapshots(labs: Record<string, LabSeries>, labOrder: string[]): LabSnapshot[] {
   return labOrder.map((key) => {
     const s = labs[key];
     const h = s.history;
@@ -46,6 +47,7 @@ function labSnapshots(): LabSnapshot[] {
 }
 
 export function NutritionInsight({ week }: { week: DayLog[] }) {
+  const { labs, labOrder, patient } = useData();
   const [phase, setPhase] = useState<Phase>("idle");
   const [data, setData] = useState<Insight | null>(null);
   const [error, setError] = useState("");
@@ -60,7 +62,7 @@ export function NutritionInsight({ week }: { week: DayLog[] }) {
         body: JSON.stringify({
           goalKcal: nutritionGoal.kcalGoal,
           days: week.map((d) => ({ label: d.label, ...dayTotals(d) })),
-          labs: labSnapshots(),
+          labs: labSnapshots(labs, labOrder),
           patient: {
             age: patient.age,
             sex: patient.sex,

@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { patient, type LabSeries } from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
+import type { LabSeries } from "@/lib/mock";
 import type { InterpretResult } from "@/lib/ai";
 
 type Phase = "idle" | "loading" | "done" | "error";
@@ -25,6 +26,7 @@ const trendMeta: Record<InterpretResult["trend"], { icon: LucideIcon; label: str
 };
 
 export function AiInterpretation({ series }: { series: LabSeries }) {
+  const { patient } = useData();
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<InterpretResult | null>(null);
   const [error, setError] = useState<string>("");

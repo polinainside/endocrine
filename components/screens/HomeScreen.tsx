@@ -24,14 +24,8 @@ import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricTile } from "@/components/ui/MetricTile";
 import { ProfileScreen } from "@/components/screens/ProfileScreen";
-import {
-  aiHint,
-  glucoseNow,
-  glucoseToday,
-  meds as seedMeds,
-  patient,
-  type Trend,
-} from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
+import { aiHint, glucoseNow, glucoseToday, type Trend } from "@/lib/mock";
 
 const trendIcon: Record<Trend, LucideIcon> = {
   up: ArrowUpRight,
@@ -45,18 +39,13 @@ const todayLabel = new Intl.DateTimeFormat("ru-RU", {
 }).format(new Date("2026-06-03T09:00:00"));
 
 export function HomeScreen() {
-  const [meds, setMeds] = useState(seedMeds);
+  const { patient, meds, toggleMed } = useData();
   const [profileOpen, setProfileOpen] = useState(false);
   const TrendIcon = trendIcon[glucoseNow.trend];
 
   if (profileOpen) {
     return <ProfileScreen onBack={() => setProfileOpen(false)} />;
   }
-
-  const toggleMed = (id: string) =>
-    setMeds((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, taken: !m.taken } : m)),
-    );
 
   return (
     <div className="flex flex-col gap-4">

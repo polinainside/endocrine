@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { MealCapture } from "@/components/nutrition/MealCapture";
 import { NutritionInsight } from "@/components/nutrition/NutritionInsight";
 import { WeekChart } from "@/components/nutrition/WeekChart";
-import { nutritionGoal, weekLogSeed, type DayLog, type Meal } from "@/lib/mock";
-
-const STORAGE_KEY = "endocrine.week.v1";
+import { useData } from "@/components/data/DataProvider";
+import { nutritionGoal, type DayLog, type Meal } from "@/lib/mock";
 
 function dayTotals(d: DayLog) {
   return d.meals.reduce(
@@ -22,35 +21,12 @@ function dayTotals(d: DayLog) {
 }
 
 export function NutritionScreen() {
-  const [week, setWeek] = useState<DayLog[]>(weekLogSeed);
-  const [loaded, setLoaded] = useState(false);
+  const { week, addMeal } = useData();
   const [selectedId, setSelectedId] = useState("d0");
 
-  // Загрузка/сохранение недели в localStorage (дневник «хранится» между сессиями).
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as DayLog[];
-        if (Array.isArray(parsed) && parsed.length) setWeek(parsed);
-      }
-    } catch {
-      /* битый кэш — игнорируем, остаётся сид */
-    }
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
-    } catch {
-      /* квота переполнена (много фото) — оставляем в памяти сессии */
-    }
-  }, [week, loaded]);
-
-  const addToToday = (meal: Meal) => {
-    setWeek((prev) => prev.map((d, i) => (i === 0 ? { ...d, meals: [meal, ...d.meals] } : d)));
+  // Добавление по фото пишется в БД (на сегодня); после — показываем сегодня.
+  const handleAdd = async (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => {
+    await addMeal(meal, photoBlob);
     setSelectedId("d0");
   };
 
@@ -88,8 +64,8 @@ export function NutritionScreen() {
         </div>
       </Card>
 
-      {/* Камера → добавление в сегодняшний дневник */}
-      <MealCapture onAdd={addToToday} />
+      {/* Камера → добавление в сегодняшний дневник (запись в БД + Storage) */}
+      <MealCapture onAdd={handleAdd} />
 
       {/* Выбор дня */}
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">

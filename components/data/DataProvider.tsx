@@ -1,0 +1,90 @@
+"use client";
+
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { Loader2, RotateCcw } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
+import { loadAppData, insertMeal, setMedTaken, type AppData } from "@/lib/supabase/data";
+import type { Meal } from "@/lib/mock";
+
+type DataContextValue = AppData & {
+  addMeal: (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => Promise<void>;
+  toggleMed: (id: string) => Promise<void>;
+  signOut: () => Promise<void>;
+};
+
+const DataContext = createContext<DataContextValue | null>(null);
+
+export function useData(): DataContextValue {
+  const ctx = useContext(DataContext);
+  if (!ctx) throw new Error("useData должен использоваться внутри <DataProvider>");
+  return ctx;
+}
+
+function Center({ children }: { children: ReactNode }) {
+  return <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 p-8 text-center">{children}</div>;
+}
+
+export function DataProvider({ userId, children }: { userId: string; children: ReactNode }) {
+  const [data, setData] = useState<AppData | null>(null);
+  const [error, setError] = useState("");
+
+  const load = () => {
+    setError("");
+    loadAppData(supabase)
+      .then(setData)
+      .catch((e) => setError(e?.message || "Не удалось загрузить данные"));
+  };
+
+  useEffect(load, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (error) {
+    return (
+      <Center>
+        <p className="text-[14px] text-muted">{error}</p>
+        <button onClick={load} className="inline-flex items-center gap-1.5 text-[14px] font-medium text-brand">
+          <RotateCcw className="h-4 w-4" /> Повторить
+        </button>
+        <button onClick={signOut} className="text-[13px] text-muted underline">
+          Выйти
+        </button>
+      </Center>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Center>
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
+        <p className="text-[14px] text-muted">Загружаем ваши данные…</p>
+      </Center>
+    );
+  }
+
+  const addMeal = async (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => {
+    const saved = await insertMeal(supabase, userId, meal, photoBlob);
+    setData((d) =>
+      d ? { ...d, week: d.week.map((day, i) => (i === 0 ? { ...day, meals: [saved, ...day.meals] } : day)) } : d,
+    );
+  };
+
+  const toggleMed = async (id: string) => {
+    const prev = data.meds;
+    setData((d) =>
+      d ? { ...d, meds: d.meds.map((m) => (m.id === id ? { ...m, taken: !m.taken } : m)) } : d,
+    );
+    try {
+      const target = prev.find((m) => m.id === id);
+      await setMedTaken(supabase, id, !(target?.taken ?? false));
+    } catch {
+      setData((d) => (d ? { ...d, meds: prev } : d)); // откат при ошибке
+    }
+  };
+
+  return (
+    <DataContext.Provider value={{ ...data, addMeal, toggleMed, signOut }}>{children}</DataContext.Provider>
+  );
+}

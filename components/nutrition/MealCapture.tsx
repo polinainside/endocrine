@@ -35,7 +35,12 @@ function totalsOf(items: MealComponent[]) {
 }
 
 // Камера → распознавание (Vision + USDA) → правка граммов → добавление в дневник.
-export function MealCapture({ onAdd }: { onAdd: (meal: Meal) => void }) {
+// onAdd получает данные блюда + Blob фото (загрузку в Storage делает провайдер).
+export function MealCapture({
+  onAdd,
+}: {
+  onAdd: (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => Promise<void> | void;
+}) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [photo, setPhoto] = useState<string | null>(null);
@@ -89,26 +94,33 @@ export function MealCapture({ onAdd }: { onAdd: (meal: Meal) => void }) {
       prev.map((it, i) => (i === idx ? { ...it, grams: Math.max(0, Math.min(3000, grams)) } : it)),
     );
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!result) return;
-    onAdd({
-      id: `meal-${Date.now()}`,
-      name: result.dish,
-      kcal: r(totals.kcal),
-      protein: r(totals.protein),
-      fat: r(totals.fat),
-      carbs: r(totals.carbs),
-      time: nowTime(),
-      emoji: "🍽️",
-      photo: photo ?? undefined,
-    });
     setPhase("added");
-    setTimeout(() => {
-      setPhase("idle");
-      setResult(null);
-      setItems([]);
-      setPhoto(null);
-    }, 1200);
+    try {
+      const blob = photo ? await (await fetch(photo)).blob() : null;
+      await onAdd(
+        {
+          name: result.dish,
+          kcal: r(totals.kcal),
+          protein: r(totals.protein),
+          fat: r(totals.fat),
+          carbs: r(totals.carbs),
+          time: nowTime(),
+          emoji: "🍽️",
+        },
+        blob,
+      );
+      setTimeout(() => {
+        setPhase("idle");
+        setResult(null);
+        setItems([]);
+        setPhoto(null);
+      }, 1000);
+    } catch {
+      setErrorMsg("Не удалось сохранить в дневник. Попробуйте ещё раз.");
+      setPhase("error");
+    }
   };
 
   return (

@@ -12,11 +12,13 @@ import {
   Ruler,
   Droplet,
   TriangleAlert,
+  LogOut,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { doctor, patient, sensor } from "@/lib/mock";
+import { useData } from "@/components/data/DataProvider";
 
 export function ProfileScreen({ onBack }: { onBack: () => void }) {
+  const { patient, doctor, sensor, signOut } = useData();
   return (
     <div className="-mx-4 -mt-4 flex flex-col">
       {/* Шапка */}
@@ -131,6 +133,14 @@ export function ProfileScreen({ onBack }: { onBack: () => void }) {
             </div>
           </Card>
         </div>
+
+        <button
+          onClick={signOut}
+          className="mt-1 flex items-center justify-center gap-2 rounded-card border border-border bg-surface py-3 text-[15px] font-medium text-alarm transition-colors active:scale-[0.99]"
+        >
+          <LogOut className="h-5 w-5" />
+          Выйти
+        </button>
       </div>
     </div>
   );
