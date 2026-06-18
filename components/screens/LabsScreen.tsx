@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Upload } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Plus, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge, StatusDot } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -20,16 +20,45 @@ import { AiInterpretation } from "@/components/AiInterpretation";
 import { useData } from "@/components/data/DataProvider";
 
 export function LabsScreen() {
-  const { labs, labOrder } = useData();
+  const { labs, labOrder, addLabResult } = useData();
   const [activeKey, setActiveKey] = useState<string>(labOrder[0]);
-  const [uploadOpen, setUploadOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newDate, setNewDate] = useState(() => {
+    const d = new Date();
+    return `${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
+  });
+  const [newValue, setNewValue] = useState("");
+  const [savingResult, setSavingResult] = useState(false);
+  const [addError, setAddError] = useState("");
 
   const series = labs[activeKey];
   const history = series.history;
   const last = history[history.length - 1];
-  const prev = history[history.length - 2];
+  const prev = history[history.length - 2] ?? last;
   const delta = +(last.value - prev.value).toFixed(1);
   const improved = delta < 0; // для эндокринных показателей снижение = улучшение
+
+  const addResult = async () => {
+    const v = parseFloat(newValue.replace(",", "."));
+    if (!Number.isFinite(v) || v <= 0) {
+      setAddError("Введите число, например 6.4");
+      return;
+    }
+    if (!newDate.trim()) {
+      setAddError("Введите дату");
+      return;
+    }
+    setSavingResult(true);
+    setAddError("");
+    try {
+      await addLabResult(activeKey, newDate.trim(), v);
+      setNewValue("");
+      setAddOpen(false);
+    } catch {
+      setAddError("Не удалось сохранить. Попробуйте ещё раз.");
+    }
+    setSavingResult(false);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,14 +192,39 @@ export function LabsScreen() {
         </ul>
       </Card>
 
-      <Button variant="secondary" onClick={() => setUploadOpen(true)} className="w-full">
-        <Upload className="h-5 w-5" />
-        Загрузить новый результат
+      <Button variant="secondary" onClick={() => setAddOpen(true)} className="w-full">
+        <Plus className="h-5 w-5" />
+        Добавить результат
       </Button>
 
-      <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Загрузка результата">
-        Скоро здесь можно будет сфотографировать бланк анализа или загрузить PDF — система
-        распознает значения автоматически. В прототипе функция отключена.
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={`Новый результат · ${series.title}`}>
+        <div className="flex flex-col gap-3">
+          <label className="block">
+            <span className="mb-1 block text-[13px] text-muted">Дата (ММ.ГГГГ)</span>
+            <input
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              inputMode="numeric"
+              placeholder="06.2026"
+              className="h-12 w-full rounded-btn border border-border bg-surface px-4 text-[15px] text-ink outline-none focus:border-brand"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[13px] text-muted">Значение, {series.unit}</span>
+            <input
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              inputMode="decimal"
+              placeholder={`напр. ${series.target}`}
+              className="h-12 w-full rounded-btn border border-border bg-surface px-4 text-[15px] text-ink outline-none focus:border-brand"
+            />
+          </label>
+          <p className="text-[12px] text-muted">Ориентир: {series.targetLabel}</p>
+          {addError && <p className="rounded-btn bg-alarm-soft px-3 py-2 text-[13px] text-alarm">{addError}</p>}
+          <Button onClick={addResult} disabled={savingResult} className="w-full">
+            {savingResult ? <Loader2 className="h-5 w-5 animate-spin" /> : "Добавить"}
+          </Button>
+        </div>
       </Modal>
     </div>
   );

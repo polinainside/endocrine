@@ -8,17 +8,33 @@ import {
   insertMeal,
   setMedTaken,
   updateProfile,
+  saveMeds as persistMeds,
+  updateLabHistory,
   type AppData,
   type Patient,
 } from "@/lib/supabase/data";
-import type { Meal } from "@/lib/mock";
+import type { Meal, Med, Status } from "@/lib/mock";
 
 type DataContextValue = AppData & {
   addMeal: (meal: Omit<Meal, "id" | "photo">, photoBlob: Blob | null) => Promise<void>;
   toggleMed: (id: string) => Promise<void>;
   saveProfile: (patient: Patient) => Promise<void>;
+  saveMeds: (meds: Med[]) => Promise<void>;
+  addLabResult: (key: string, date: string, value: number) => Promise<void>;
   signOut: () => Promise<void>;
 };
+
+// Статус значения относительно цели (приблизительно, для подсветки точки).
+function computeStatus(series: { key: string; target: number }, value: number): Status {
+  if (series.key === "tsh") {
+    if (value >= 0.4 && value <= series.target) return "ok";
+    if (value >= 0.3 && value <= series.target * 1.25) return "warn";
+    return "alarm";
+  }
+  if (value <= series.target) return "ok";
+  if (value <= series.target * 1.15) return "warn";
+  return "alarm";
+}
 
 const DataContext = createContext<DataContextValue | null>(null);
 
@@ -97,8 +113,23 @@ export function DataProvider({ userId, children }: { userId: string; children: R
     setData((d) => (d ? { ...d, patient } : d));
   };
 
+  const saveMeds = async (meds: Med[]) => {
+    const fresh = await persistMeds(supabase, userId, meds);
+    setData((d) => (d ? { ...d, meds: fresh } : d));
+  };
+
+  const addLabResult = async (key: string, date: string, value: number) => {
+    const series = data.labs[key];
+    if (!series) return;
+    const history = [...series.history, { date, value, status: computeStatus(series, value) }];
+    await updateLabHistory(supabase, userId, key, history);
+    setData((d) => (d ? { ...d, labs: { ...d.labs, [key]: { ...series, history } } } : d));
+  };
+
   return (
-    <DataContext.Provider value={{ ...data, addMeal, toggleMed, saveProfile, signOut }}>
+    <DataContext.Provider
+      value={{ ...data, addMeal, toggleMed, saveProfile, saveMeds, addLabResult, signOut }}
+    >
       {children}
     </DataContext.Provider>
   );

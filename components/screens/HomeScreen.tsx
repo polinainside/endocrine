@@ -18,12 +18,14 @@ import {
   Scale,
   Footprints,
   CalendarClock,
+  Pencil,
   type LucideIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricTile } from "@/components/ui/MetricTile";
 import { ProfileScreen } from "@/components/screens/ProfileScreen";
+import { MedsEditScreen } from "@/components/screens/MedsEditScreen";
 import { useData } from "@/components/data/DataProvider";
 import { aiHint, glucoseNow, glucoseToday, type Trend } from "@/lib/mock";
 
@@ -41,11 +43,11 @@ const todayLabel = new Intl.DateTimeFormat("ru-RU", {
 export function HomeScreen() {
   const { patient, meds, toggleMed } = useData();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [medsEditOpen, setMedsEditOpen] = useState(false);
   const TrendIcon = trendIcon[glucoseNow.trend];
 
-  if (profileOpen) {
-    return <ProfileScreen onBack={() => setProfileOpen(false)} />;
-  }
+  if (profileOpen) return <ProfileScreen onBack={() => setProfileOpen(false)} />;
+  if (medsEditOpen) return <MedsEditScreen onBack={() => setMedsEditOpen(false)} />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -166,7 +168,16 @@ export function HomeScreen() {
 
       {/* Приём препаратов */}
       <Card>
-        <h2 className="text-[16px] font-semibold text-ink">Приём препаратов сегодня</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[16px] font-semibold text-ink">Приём препаратов сегодня</h2>
+          <button
+            onClick={() => setMedsEditOpen(true)}
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-brand"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Изменить
+          </button>
+        </div>
         <ul className="mt-3 flex flex-col gap-2.5">
           {meds.map((med) => (
             <li key={med.id} className="flex items-center justify-between">

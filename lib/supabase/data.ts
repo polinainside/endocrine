@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { DayLog, LabSeries, Meal, Med } from "@/lib/mock";
+import type { DayLog, LabPoint, LabSeries, Meal, Med } from "@/lib/mock";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Чтение и трансформация данных пользователя из Supabase в формы приложения.
@@ -220,6 +220,52 @@ export async function insertMeal(
 
 export async function setMedTaken(client: SupabaseClient, id: string, taken: boolean): Promise<void> {
   const { error } = await client.from("meds").update({ taken }).eq("id", id);
+  if (error) throw error;
+}
+
+// Реконсиляция списка препаратов: удалить убранные, обновить существующие,
+// вставить новые (у новых id не из БД). Возвращает свежий список из БД.
+export async function saveMeds(client: SupabaseClient, userId: string, desired: Med[]): Promise<Med[]> {
+  const { data: rows } = await client.from("meds").select("id").eq("user_id", userId);
+  const existing = new Set((rows ?? []).map((r) => String(r.id)));
+  const keep = new Set(desired.filter((d) => existing.has(d.id)).map((d) => d.id));
+
+  const toDelete = [...existing].filter((id) => !keep.has(id));
+  if (toDelete.length) {
+    const { error } = await client.from("meds").delete().in("id", toDelete);
+    if (error) throw error;
+  }
+
+  for (let i = 0; i < desired.length; i++) {
+    const d = desired[i];
+    const payload = { name: d.name.trim(), dose: d.dose.trim(), time: d.time.trim(), taken: d.taken, sort: i };
+    if (existing.has(d.id)) {
+      const { error } = await client.from("meds").update(payload).eq("id", d.id);
+      if (error) throw error;
+    } else {
+      const { error } = await client.from("meds").insert({ ...payload, user_id: userId });
+      if (error) throw error;
+    }
+  }
+
+  const { data } = await client.from("meds").select("*").order("sort");
+  return (data ?? []).map((m) => ({
+    id: String(m.id),
+    name: m.name,
+    dose: m.dose,
+    time: m.time,
+    taken: !!m.taken,
+  }));
+}
+
+// Добавляет точку в историю анализа (history jsonb) под RLS.
+export async function updateLabHistory(
+  client: SupabaseClient,
+  userId: string,
+  key: string,
+  history: LabPoint[],
+): Promise<void> {
+  const { error } = await client.from("labs").update({ history }).eq("user_id", userId).eq("key", key);
   if (error) throw error;
 }
 
