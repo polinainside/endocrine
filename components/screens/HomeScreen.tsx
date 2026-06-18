@@ -54,10 +54,10 @@ export function HomeScreen() {
       {/* Шапка */}
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-semibold leading-tight text-ink">
+          <p className="text-[14px] capitalize text-muted">{todayLabel}</p>
+          <h1 className="mt-0.5 text-[25px] font-semibold leading-tight text-ink">
             Здравствуйте, {patient.name}
           </h1>
-          <p className="text-[13px] capitalize text-muted">{todayLabel}, сегодня</p>
         </div>
         <button
           onClick={() => setProfileOpen(true)}

@@ -52,7 +52,7 @@ export function NutritionScreen() {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[13px] text-muted">В среднем за неделю</p>
-            <p className="text-[22px] font-semibold leading-tight text-ink">
+            <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
               {weekAvg.toLocaleString("ru-RU")}{" "}
               <span className="text-[15px] font-normal text-muted">ккал/день</span>
             </p>
@@ -90,7 +90,7 @@ export function NutritionScreen() {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[13px] text-muted">{selected.label}</p>
-            <p className="text-[22px] font-semibold leading-tight text-ink">
+            <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
               {sel.kcal.toLocaleString("ru-RU")}{" "}
               <span className="text-[15px] font-normal text-muted">
                 {isToday ? `/ ${nutritionGoal.kcalGoal.toLocaleString("ru-RU")} ` : ""}ккал

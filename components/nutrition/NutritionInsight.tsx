@@ -85,7 +85,7 @@ export function NutritionInsight({ week }: { week: DayLog[] }) {
   };
 
   return (
-    <Card className="border-brand/15 bg-brand-soft/30">
+    <Card plain className="border-brand/15 bg-brand-soft/30">
       <div className="flex items-center gap-2">
         <Sparkles className="h-5 w-5 text-brand" strokeWidth={2.2} />
         <h2 className="text-[16px] font-semibold text-ink">ИИ-анализ питания и анализов</h2>
