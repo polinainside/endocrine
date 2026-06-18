@@ -13,9 +13,8 @@ body {
 }
 
 body {
-  background-color: #eef2f7;
-  color: #0f2540;
-  font-feature-settings: "cv11", "ss01";
+  background-color: #ECEAE5;
+  color: #211F1D;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

@@ -22,7 +22,7 @@ export function WeekChart({
         <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }} barCategoryGap="22%">
           <XAxis
             dataKey="short"
-            tick={{ fontSize: 11, fill: "#5B6B7F" }}
+            tick={{ fontSize: 11, fill: "#8A847C" }}
             axisLine={false}
             tickLine={false}
           />
@@ -43,7 +43,7 @@ export function WeekChart({
             {data.map((d) => (
               <Cell
                 key={d.id}
-                fill={d.id === selectedId ? "#1E6FD9" : d.kcal > goalKcal ? "#E0A800" : "#9DC3F0"}
+                fill={d.id === selectedId ? "#E36C39" : d.kcal > goalKcal ? "#E0A800" : "#F4C5AC"}
               />
             ))}
           </Bar>

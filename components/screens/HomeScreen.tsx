@@ -74,10 +74,10 @@ export function HomeScreen() {
           <div>
             <p className="text-[13px] font-medium text-muted">Глюкоза сейчас</p>
             <div className="mt-1 flex items-end gap-2">
-              <span className="text-[40px] font-bold leading-none text-ink">
+              <span className="text-[56px] font-light leading-none tracking-tight text-ink">
                 {glucoseNow.value}
               </span>
-              <span className="mb-1 text-[15px] text-muted">{glucoseNow.unit}</span>
+              <span className="mb-1.5 text-[15px] text-muted">{glucoseNow.unit}</span>
               <TrendIcon className="mb-1.5 h-5 w-5 text-ok" strokeWidth={2.4} />
             </div>
           </div>
@@ -105,26 +105,26 @@ export function HomeScreen() {
             <AreaChart data={glucoseToday} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
               <defs>
                 <linearGradient id="glucoseFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1E6FD9" stopOpacity={0.22} />
-                  <stop offset="100%" stopColor="#1E6FD9" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#E36C39" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="#E36C39" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <YAxis domain={[4, 9]} hide />
               <Tooltip
-                cursor={{ stroke: "#E3EAF2" }}
+                cursor={{ stroke: "#ECE9E3" }}
                 contentStyle={{
                   borderRadius: 12,
-                  border: "1px solid #E3EAF2",
+                  border: "1px solid #ECE9E3",
                   fontSize: 12,
                   boxShadow: "0 4px 16px rgba(15,37,64,0.08)",
                 }}
-                labelStyle={{ color: "#5B6B7F" }}
+                labelStyle={{ color: "#8A847C" }}
                 formatter={(v: number) => [`${v} ммоль/л`, ""]}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#1E6FD9"
+                stroke="#E36C39"
                 strokeWidth={2.5}
                 fill="url(#glucoseFill)"
                 dot={false}

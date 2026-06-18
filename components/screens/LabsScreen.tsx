@@ -90,8 +90,8 @@ export function LabsScreen() {
           <div>
             <p className="text-[13px] font-medium text-muted">{series.title}</p>
             <div className="mt-1 flex items-end gap-1.5">
-              <span className="text-[36px] font-bold leading-none text-ink">{last.value}</span>
-              <span className="mb-1 text-[15px] text-muted">{series.unit}</span>
+              <span className="text-[48px] font-light leading-none tracking-tight text-ink">{last.value}</span>
+              <span className="mb-1.5 text-[15px] text-muted">{series.unit}</span>
             </div>
             <p className="mt-1 text-[13px] text-muted">сдано {last.date}</p>
           </div>
@@ -122,15 +122,15 @@ export function LabsScreen() {
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke="#E3EAF2" vertical={false} />
+              <CartesianGrid stroke="#ECE9E3" vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: "#5B6B7F" }}
+                tick={{ fontSize: 11, fill: "#8A847C" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: "#5B6B7F" }}
+                tick={{ fontSize: 11, fill: "#8A847C" }}
                 axisLine={false}
                 tickLine={false}
                 width={36}
@@ -140,11 +140,11 @@ export function LabsScreen() {
               <Tooltip
                 contentStyle={{
                   borderRadius: 12,
-                  border: "1px solid #E3EAF2",
+                  border: "1px solid #ECE9E3",
                   fontSize: 12,
                   boxShadow: "0 4px 16px rgba(15,37,64,0.08)",
                 }}
-                labelStyle={{ color: "#5B6B7F" }}
+                labelStyle={{ color: "#8A847C" }}
                 formatter={(v: number) => [`${v} ${series.unit}`, series.title]}
               />
               <ReferenceLine
@@ -156,9 +156,9 @@ export function LabsScreen() {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#1E6FD9"
+                stroke="#E36C39"
                 strokeWidth={2.6}
-                dot={{ r: 3.5, fill: "#1E6FD9", strokeWidth: 0 }}
+                dot={{ r: 3.5, fill: "#E36C39", strokeWidth: 0 }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>

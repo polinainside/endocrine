@@ -22,7 +22,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="flex h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#e7ebf1]">
+    <div className="flex h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#ECEAE5]">
       {/* Корпус (безель). На десктопе фиксированный 390×844 + transform: scale. */}
       <div
         style={{ ["--frame-scale" as keyof CSSProperties]: scale } as CSSProperties}

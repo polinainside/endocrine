@@ -8,33 +8,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // App surfaces
-        bg: "#F5F8FC",
+        // App surfaces — тёплый минимализм
+        bg: "#F7F6F3",
         surface: "#FFFFFF",
-        border: "#E3EAF2",
-        // Brand
-        brand: "#1E6FD9",
-        "brand-soft": "#E6F1FB",
+        border: "#ECE9E3",
+        // Brand — приглушённый терракотовый оранж (по референсу)
+        brand: "#E36C39",
+        "brand-soft": "#FBEAE0",
         // Text
-        ink: "#0F2540",
-        muted: "#5B6B7F",
+        ink: "#211F1D",
+        muted: "#8A847C",
         // Status — ok / warn / alarm
         ok: "#1D9E75",
-        "ok-soft": "#E1F5EE",
+        "ok-soft": "#E2F4EC",
         warn: "#E0A800",
         "warn-soft": "#FAEEDA",
         alarm: "#E24B4A",
         "alarm-soft": "#FCEBEB",
       },
       fontFamily: {
-        sans: ["var(--font-manrope)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        card: "16px",
-        btn: "12px",
+        card: "22px",
+        btn: "14px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15, 37, 64, 0.04), 0 4px 16px rgba(15, 37, 64, 0.04)",
+        card: "0 1px 2px rgba(33, 31, 29, 0.04), 0 10px 30px rgba(33, 31, 29, 0.05)",
       },
       maxWidth: {
         phone: "420px",

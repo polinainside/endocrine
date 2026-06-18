@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Onest } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-const manrope = Manrope({
+const sans = Onest({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-manrope",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#F5F8FC",
+  themeColor: "#F7F6F3",
 };
 
 export default function RootLayout({
@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={manrope.variable}>
+    <html lang="ru" className={sans.variable}>
       <body className="font-sans antialiased">
         {children}
         <ServiceWorkerRegister />
