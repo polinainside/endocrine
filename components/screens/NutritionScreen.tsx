@@ -5,7 +5,10 @@ import { Card } from "@/components/ui/Card";
 import { MealCapture } from "@/components/nutrition/MealCapture";
 import { NutritionInsight } from "@/components/nutrition/NutritionInsight";
 import { WeekChart } from "@/components/nutrition/WeekChart";
+import { RingGauge } from "@/components/ui/RingGauge";
 import { useData } from "@/components/data/DataProvider";
+import { useCountUp } from "@/lib/useCountUp";
+import { UtensilsCrossed } from "lucide-react";
 import { nutritionGoal, type DayLog, type Meal } from "@/lib/mock";
 
 function dayTotals(d: DayLog) {
@@ -41,10 +44,11 @@ export function NutritionScreen() {
   const selected = week.find((d) => d.id === selectedId) ?? week[0];
   const sel = dayTotals(selected);
   const pct = Math.min(100, Math.round((sel.kcal / nutritionGoal.kcalGoal) * 100));
-  const isToday = selected.id === "d0";
+  const animWeek = useCountUp(weekAvg);
+  const animDay = useCountUp(sel.kcal);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 stagger">
       <h1 className="text-[22px] font-semibold text-ink">Питание</h1>
 
       {/* Неделя: график калорий */}
@@ -53,7 +57,7 @@ export function NutritionScreen() {
           <div>
             <p className="text-[13px] text-muted">В среднем за неделю</p>
             <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
-              {weekAvg.toLocaleString("ru-RU")}{" "}
+              {animWeek}{" "}
               <span className="text-[15px] font-normal text-muted">ккал/день</span>
             </p>
           </div>
@@ -87,33 +91,25 @@ export function NutritionScreen() {
 
       {/* Выбранный день */}
       <Card>
-        <div className="flex items-end justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[13px] text-muted">{selected.label}</p>
             <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
-              {sel.kcal.toLocaleString("ru-RU")}{" "}
-              <span className="text-[15px] font-normal text-muted">
-                {isToday ? `/ ${nutritionGoal.kcalGoal.toLocaleString("ru-RU")} ` : ""}ккал
-              </span>
+              {animDay} <span className="text-[15px] font-normal text-muted">ккал</span>
+            </p>
+            <p className="mt-1 text-[13px] text-muted">
+              Б {sel.protein} · Ж {sel.fat} · У {sel.carbs} г
             </p>
           </div>
-          <div className="text-right text-[13px] text-muted">
-            <p>Б {sel.protein} · Ж {sel.fat}</p>
-            <p>Углеводы {sel.carbs} г</p>
-          </div>
+          <RingGauge value={pct} caption="от цели" size={84} />
         </div>
-        {isToday && (
-          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-brand-soft">
-            <div
-              className="h-full rounded-full bg-brand transition-all duration-500"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        )}
 
         <div className="mt-3 flex flex-col gap-2.5">
           {selected.meals.length === 0 && (
-            <p className="py-4 text-center text-[14px] text-muted">Записей пока нет</p>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <UtensilsCrossed className="h-8 w-8 text-muted/40" strokeWidth={1.5} />
+              <p className="text-[14px] text-muted">В этот день записей нет</p>
+            </div>
           )}
           {selected.meals.map((meal) => (
             <div key={meal.id} className="flex items-center gap-3 rounded-card border border-border bg-surface p-3">

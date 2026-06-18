@@ -25,7 +25,7 @@ export function AppShell() {
   return (
     <>
       <DemoBadge />
-      <main key={tab} className="no-scrollbar flex-1 animate-fade-in overflow-y-auto p-4">
+      <main key={tab} className="no-scrollbar flex-1 overflow-y-auto p-4">
         <Screen />
       </main>
       <TabBar active={tab} onChange={setTab} />

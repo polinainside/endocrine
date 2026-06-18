@@ -25,6 +25,8 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricTile } from "@/components/ui/MetricTile";
 import { RingGauge } from "@/components/ui/RingGauge";
 import { MedsEditScreen } from "@/components/screens/MedsEditScreen";
+import { GlucoseDetailScreen } from "@/components/screens/GlucoseDetailScreen";
+import { useCountUp } from "@/lib/useCountUp";
 import { useData } from "@/components/data/DataProvider";
 import { aiHint, glucoseNow, glucoseToday, type Trend } from "@/lib/mock";
 
@@ -54,12 +56,15 @@ const todayLabel = new Intl.DateTimeFormat("ru-RU", {
 export function HomeScreen() {
   const { patient, meds, toggleMed } = useData();
   const [medsEditOpen, setMedsEditOpen] = useState(false);
+  const [glucoseDetailOpen, setGlucoseDetailOpen] = useState(false);
   const TrendIcon = trendIcon[glucoseNow.trend];
+  const animGlucose = useCountUp(glucoseNow.value, { decimals: 1 });
 
   if (medsEditOpen) return <MedsEditScreen onBack={() => setMedsEditOpen(false)} />;
+  if (glucoseDetailOpen) return <GlucoseDetailScreen onBack={() => setGlucoseDetailOpen(false)} />;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 stagger">
       {/* Шапка */}
       <header className="flex items-center justify-between">
         <div>
@@ -70,14 +75,14 @@ export function HomeScreen() {
         </div>
       </header>
 
-      {/* Карточка глюкозы — герой-блок */}
-      <Card>
+      {/* Карточка глюкозы — герой-блок (тап → детали) */}
+      <Card onClick={() => setGlucoseDetailOpen(true)}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[13px] font-medium text-muted">Глюкоза сейчас</p>
             <div className="mt-1 flex items-end gap-2">
               <span className="text-[56px] font-light leading-none tracking-tight text-ink">
-                {glucoseNow.value}
+                {animGlucose}
               </span>
               <span className="mb-1.5 text-[15px] text-muted">{glucoseNow.unit}</span>
               <TrendIcon className="mb-1.5 h-5 w-5 text-ok" strokeWidth={2.4} />
@@ -140,10 +145,12 @@ export function HomeScreen() {
         </div>
       </Card>
 
-      {/* ИИ-подсказка */}
-      <div className="flex gap-3 rounded-card border border-brand/15 bg-brand-soft/50 p-4">
-        <Sparkles className="h-5 w-5 shrink-0 text-brand" strokeWidth={2.2} />
-        <p className="text-[14px] leading-relaxed text-ink/90">{aiHint.text}</p>
+      {/* ИИ-подсказка — карточка с градиентным бордером */}
+      <div className="rounded-card bg-gradient-to-br from-brand/35 via-brand/10 to-transparent p-px shadow-card">
+        <div className="flex gap-3 rounded-[21px] bg-gradient-to-br from-brand-soft/70 to-white p-4">
+          <Sparkles className="h-5 w-5 shrink-0 text-brand" strokeWidth={2.2} />
+          <p className="text-[14px] leading-relaxed text-ink/90">{aiHint.text}</p>
+        </div>
       </div>
 
       {/* Ряд мини-метрик */}

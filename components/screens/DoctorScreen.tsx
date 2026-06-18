@@ -26,7 +26,7 @@ export function DoctorScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 stagger">
       <h1 className="text-[22px] font-semibold text-ink">Врач</h1>
 
       {/* Карточка врача */}

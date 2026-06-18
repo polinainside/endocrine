@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Plus, X, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Plus, X, Loader2, Check, Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useData } from "@/components/data/DataProvider";
 import type { Med } from "@/lib/mock";
@@ -49,7 +49,10 @@ export function MedsEditScreen({ onBack }: { onBack: () => void }) {
 
       <div className="flex flex-col gap-3 px-4 pb-6 pt-4">
         {list.length === 0 && (
-          <p className="py-4 text-center text-[14px] text-muted">Список пуст — добавьте препарат</p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <Pill className="h-8 w-8 text-muted/40" strokeWidth={1.5} />
+            <p className="text-[14px] text-muted">Список пуст — добавьте препарат</p>
+          </div>
         )}
 
         {list.map((m) => (

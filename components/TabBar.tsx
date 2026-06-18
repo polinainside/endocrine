@@ -22,7 +22,7 @@ export function TabBar({
   return (
     <nav className="z-30 flex shrink-0 justify-center px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2">
       {/* Плавающая «таблетка»; активный пункт — чёрный кружок (по референсу) */}
-      <div className="flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-2 shadow-card">
+      <div className="flex items-center gap-1 rounded-full border border-border bg-surface/80 px-2 py-2 shadow-card backdrop-blur-md">
         {tabs.map(({ key, label, icon: Icon }) => {
           const isActive = active === key;
           return (

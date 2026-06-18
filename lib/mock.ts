@@ -81,6 +81,31 @@ export const glucoseToday: { time: string; value: number }[] = [
   { time: "15:20", value: 6.2 },
 ];
 
+// Глюкоза для экрана детали: день / неделя / месяц (label + значение).
+export type GluPoint = { label: string; value: number };
+export const glucoseSeries: Record<"day" | "week" | "month", GluPoint[]> = {
+  day: glucoseToday.map((p) => ({ label: p.time, value: p.value })),
+  week: [
+    { label: "Пн", value: 6.4 },
+    { label: "Вт", value: 6.9 },
+    { label: "Ср", value: 6.1 },
+    { label: "Чт", value: 7.3 },
+    { label: "Пт", value: 6.5 },
+    { label: "Сб", value: 6.8 },
+    { label: "Вс", value: 6.2 },
+  ],
+  month: [
+    { label: "1", value: 7.2 },
+    { label: "5", value: 7.0 },
+    { label: "10", value: 6.8 },
+    { label: "14", value: 6.9 },
+    { label: "18", value: 6.5 },
+    { label: "22", value: 6.4 },
+    { label: "26", value: 6.3 },
+    { label: "30", value: 6.2 },
+  ],
+};
+
 export const aiHint = {
   title: "Подсказка ассистента",
   text: "Глюкоза стабильна после обеда. Так держать — лёгкая прогулка вечером поможет удержать тренд.",

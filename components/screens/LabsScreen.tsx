@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { AiInterpretation } from "@/components/AiInterpretation";
 import { useData } from "@/components/data/DataProvider";
+import { useCountUp } from "@/lib/useCountUp";
 
 export function LabsScreen() {
   const { labs, labOrder, addLabResult } = useData();
@@ -37,6 +38,7 @@ export function LabsScreen() {
   const prev = history[history.length - 2] ?? last;
   const delta = +(last.value - prev.value).toFixed(1);
   const improved = delta < 0; // для эндокринных показателей снижение = улучшение
+  const animLast = useCountUp(last.value, { decimals: 1 });
 
   const addResult = async () => {
     const v = parseFloat(newValue.replace(",", "."));
@@ -61,7 +63,7 @@ export function LabsScreen() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 stagger">
       <h1 className="text-[22px] font-semibold text-ink">Анализы и динамика</h1>
 
       {/* Переключатель показателя */}
@@ -90,7 +92,7 @@ export function LabsScreen() {
           <div>
             <p className="text-[13px] font-medium text-muted">{series.title}</p>
             <div className="mt-1 flex items-end gap-1.5">
-              <span className="text-[48px] font-light leading-none tracking-tight text-ink">{last.value}</span>
+              <span className="text-[48px] font-light leading-none tracking-tight text-ink">{animLast}</span>
               <span className="mb-1.5 text-[15px] text-muted">{series.unit}</span>
             </div>
             <p className="mt-1 text-[13px] text-muted">сдано {last.date}</p>
