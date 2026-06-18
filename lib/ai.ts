@@ -86,47 +86,96 @@ function statusRu(s: InterpretLabPoint["status"]): string {
 }
 
 // ── Распознавание еды по фото (Mistral Vision) ──────────────────────────────
+// Двухшаговый пайплайн: (1) Vision разбирает блюдо на компоненты с граммами и
+// английскими запросами + грубую оценку на 100 г как fallback; (2) сервер берёт
+// реальные ккал/БЖУ на 100 г из базы USDA по query_en. См. lib/usda.ts и route.
 
-export type RecognizedMeal = {
+export type Macro = { kcal: number; protein: number; fat: number; carbs: number };
+export type Confidence = "low" | "medium" | "high";
+
+// То, что возвращает vision-модель (внутренний слой).
+export type VisionItem = {
+  name: string; // русское название компонента
+  query_en: string; // англ. запрос для базы нутриентов
+  grams: number; // оценка веса на фото
+  est: Macro; // грубая оценка на 100 г (fallback, если в базе не нашли)
+};
+export type VisionResult = {
   isFood: boolean;
-  name: string;
-  kcal: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-  confidence: "low" | "medium" | "high";
+  dish: string;
+  confidence: Confidence;
+  items: VisionItem[];
 };
 
-// Промпт для vision-модели. Кладётся рядом с картинкой в одном user-сообщении.
-export const VISION_PROMPT = `Ты — помощник по подсчёту калорий в дневнике питания. На фото — приём пищи.
-Определи блюдо и оцени пищевую ценность ВСЕЙ видимой порции.
+// Итоговый компонент, который уходит на клиент (per100 — реальные данные USDA или оценка).
+export type MealComponent = {
+  name: string;
+  grams: number;
+  per100: Macro;
+  source: "usda" | "estimate";
+  matchedName?: string; // с чем сматчилось в USDA (прозрачность)
+};
+export type RecognizeResponse = {
+  isFood: boolean;
+  dish: string;
+  confidence: Confidence;
+  items: MealComponent[];
+};
 
-Правила:
-- name — коротко по-русски (2–5 слов), например «Греческий салат с тунцом».
-- kcal, protein, fat, carbs — целые числа на всю порцию на фото. Это приблизительная оценка, не точное измерение.
-- confidence: high — блюдо явно видно и понятно; medium — частично; low — плохо видно или трудно оценить.
-- Если на фото НЕ еда или определить невозможно — верни isFood:false и нули.
+export const VISION_PROMPT = `Ты — помощник по подсчёту калорий. На фото — приём пищи. Разбери блюдо на основные съедобные компоненты (обычно 1–5).
+
+Для каждого компонента укажи:
+- name: короткое русское название, например «Куриная грудка гриль».
+- query_en: то же простыми продуктовыми словами по-английски для поиска в базе нутриентов, например «grilled chicken breast». Без брендов и количеств.
+- grams: оценка веса этого компонента на фото в граммах (целое число).
+- est: грубая оценка пищевой ценности на 100 г этого продукта: {kcal, protein, fat, carbs}.
+
+Также верни:
+- dish: общее русское название блюда.
+- confidence: high — всё хорошо видно; medium — частично; low — трудно оценить.
+- isFood: false, если на фото не еда (тогда items: []).
 
 Верни СТРОГО валидный JSON без markdown по схеме:
-{"isFood":true,"name":"","kcal":0,"protein":0,"fat":0,"carbs":0,"confidence":"medium"}`;
+{"isFood":true,"dish":"","confidence":"medium","items":[{"name":"","query_en":"","grams":0,"est":{"kcal":0,"protein":0,"fat":0,"carbs":0}}]}`;
 
-// Защитный парсинг + клампинг (модель может вернуть строки/мусор/огромные числа).
-export function parseRecognizedMeal(raw: unknown): RecognizedMeal {
+function clampNum(v: unknown, max: number): number {
+  const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : NaN;
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(Math.round(n), max);
+}
+
+function parseMacro(raw: unknown): Macro {
   const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
-  const num = (v: unknown, max: number) => {
-    const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : NaN;
-    if (!Number.isFinite(n) || n < 0) return 0;
-    return Math.min(Math.round(n), max);
-  };
-  const conf = o.confidence;
   return {
-    isFood: o.isFood !== false,
-    name: typeof o.name === "string" && o.name.trim() ? o.name.trim().slice(0, 80) : "Блюдо",
-    kcal: num(o.kcal, 5000),
-    protein: num(o.protein, 1000),
-    fat: num(o.fat, 1000),
-    carbs: num(o.carbs, 1000),
+    kcal: clampNum(o.kcal, 900),
+    protein: clampNum(o.protein, 100),
+    fat: clampNum(o.fat, 100),
+    carbs: clampNum(o.carbs, 100),
+  };
+}
+
+// Защитный парсинг ответа vision-модели.
+export function parseVisionResult(raw: unknown): VisionResult {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const conf = o.confidence;
+  const itemsRaw = Array.isArray(o.items) ? o.items : [];
+  const items: VisionItem[] = itemsRaw
+    .slice(0, 8)
+    .map((it) => {
+      const i = (typeof it === "object" && it !== null ? it : {}) as Record<string, unknown>;
+      return {
+        name: typeof i.name === "string" && i.name.trim() ? i.name.trim().slice(0, 80) : "Компонент",
+        query_en: typeof i.query_en === "string" ? i.query_en.trim().slice(0, 80) : "",
+        grams: clampNum(i.grams, 3000),
+        est: parseMacro(i.est),
+      };
+    })
+    .filter((i) => i.grams > 0 || i.query_en.length > 0);
+  return {
+    isFood: o.isFood !== false && items.length > 0,
+    dish: typeof o.dish === "string" && o.dish.trim() ? o.dish.trim().slice(0, 80) : "Блюдо",
     confidence: conf === "low" || conf === "high" ? conf : "medium",
+    items,
   };
 }
 

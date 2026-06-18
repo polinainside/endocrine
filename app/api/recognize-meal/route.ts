@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
-import { VISION_PROMPT, parseRecognizedMeal } from "@/lib/ai";
+import {
+  VISION_PROMPT,
+  parseVisionResult,
+  type MealComponent,
+  type RecognizeResponse,
+} from "@/lib/ai";
+import { lookupPer100 } from "@/lib/usda";
 
-// Только серверный код. Фото (base64 data URI) уходит в Mistral Vision, ключ на клиент не попадает.
+// Только серверный код. Фото уходит в Mistral Vision, затем ккал берутся из USDA.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
-// Vision-модель Mistral. Переопределяется через MISTRAL_VISION_MODEL.
 const DEFAULT_VISION_MODEL = "pixtral-12b-2409";
-const MAX_IMAGE_CHARS = 8 * 1024 * 1024; // ~8 МБ data URI (клиент присылает сжатое ~1024px)
+const MAX_IMAGE_CHARS = 8 * 1024 * 1024; // ~8 МБ data URI
 
 export async function POST(request: Request) {
   const apiKey = process.env.MISTRAL_API_KEY;
@@ -22,6 +27,8 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
+  // Свой ключ USDA желателен; DEMO_KEY работает, но с жёсткими лимитами.
+  const usdaKey = process.env.USDA_API_KEY || "DEMO_KEY";
 
   let body: { image?: unknown };
   try {
@@ -48,6 +55,7 @@ export async function POST(request: Request) {
   const timeout = setTimeout(() => controller.abort(), 30_000);
 
   try {
+    // ── Шаг 1: Vision разбирает блюдо на компоненты ──
     const res = await fetch(MISTRAL_URL, {
       method: "POST",
       headers: {
@@ -58,7 +66,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: process.env.MISTRAL_VISION_MODEL || DEFAULT_VISION_MODEL,
         temperature: 0.2,
-        max_tokens: 350,
+        max_tokens: 700,
         response_format: { type: "json_object" },
         messages: [
           {
@@ -85,9 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "upstream", message }, { status: 502 });
     }
 
-    const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
+    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     const content = data.choices?.[0]?.message?.content ?? "";
 
     let parsed: unknown;
@@ -101,7 +107,41 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(parseRecognizedMeal(parsed));
+    const vision = parseVisionResult(parsed);
+    if (!vision.isFood) {
+      const empty: RecognizeResponse = { isFood: false, dish: "", confidence: "low", items: [] };
+      return NextResponse.json(empty);
+    }
+
+    // ── Шаг 2: реальные ккал/100г из USDA по каждому компоненту (параллельно) ──
+    const items: MealComponent[] = await Promise.all(
+      vision.items.map(async (it): Promise<MealComponent> => {
+        try {
+          const match = await lookupPer100(it.query_en, usdaKey, controller.signal);
+          if (match) {
+            return {
+              name: it.name,
+              grams: it.grams,
+              per100: match.per100,
+              source: "usda",
+              matchedName: match.matchedName,
+            };
+          }
+        } catch (e) {
+          console.error("USDA lookup failed for", it.query_en, e instanceof Error ? e.message : e);
+        }
+        // Fallback: оценка модели на 100 г.
+        return { name: it.name, grams: it.grams, per100: it.est, source: "estimate" };
+      }),
+    );
+
+    const result: RecognizeResponse = {
+      isFood: true,
+      dish: vision.dish,
+      confidence: vision.confidence,
+      items,
+    };
+    return NextResponse.json(result);
   } catch (err) {
     const aborted = err instanceof Error && err.name === "AbortError";
     console.error("recognize-meal route failed", err);

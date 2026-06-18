@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Loader2, Plus, Check, RotateCcw, ImageOff, Sparkles } from "lucide-react";
+import { Camera, Loader2, Plus, Check, RotateCcw, ImageOff, Sparkles, Minus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CameraCapture } from "@/components/CameraCapture";
 import { meals as seedMeals, nutritionGoal, type Meal } from "@/lib/mock";
-import type { RecognizedMeal } from "@/lib/ai";
+import type { Confidence, MealComponent, RecognizeResponse } from "@/lib/ai";
 
 type Phase = "idle" | "recognizing" | "result" | "added" | "error";
 
-const confidenceMeta: Record<RecognizedMeal["confidence"], { label: string; cls: string }> = {
+const confidenceMeta: Record<Confidence, { label: string; cls: string }> = {
   low: { label: "низкая точность", cls: "bg-warn-soft text-warn" },
   medium: { label: "средняя точность", cls: "bg-brand-soft text-brand" },
   high: { label: "высокая точность", cls: "bg-ok-soft text-ok" },
@@ -19,21 +19,43 @@ const confidenceMeta: Record<RecognizedMeal["confidence"], { label: string; cls:
 const nowTime = () =>
   new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(new Date());
 
+const r = (n: number) => Math.round(n);
+
+// Суммарная пищевая ценность с учётом отредактированных граммов.
+function totalsOf(items: MealComponent[]) {
+  return items.reduce(
+    (acc, it) => {
+      const k = it.grams / 100;
+      acc.kcal += it.per100.kcal * k;
+      acc.protein += it.per100.protein * k;
+      acc.fat += it.per100.fat * k;
+      acc.carbs += it.per100.carbs * k;
+      return acc;
+    },
+    { kcal: 0, protein: 0, fat: 0, carbs: 0 },
+  );
+}
+
 export function NutritionScreen() {
   const [meals, setMeals] = useState<Meal[]>(seedMeals);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [recognized, setRecognized] = useState<RecognizedMeal | null>(null);
+  const [result, setResult] = useState<RecognizeResponse | null>(null);
+  const [items, setItems] = useState<MealComponent[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
 
   const eaten = meals.reduce((sum, m) => sum + m.kcal, 0);
   const carbs = meals.reduce((sum, m) => sum + m.carbs, 0);
   const pct = Math.min(100, Math.round((eaten / nutritionGoal.kcalGoal) * 100));
 
+  const totals = totalsOf(items);
+  const usesUsda = items.some((i) => i.source === "usda");
+
   const recognize = async (dataUrl: string) => {
     setPhase("recognizing");
-    setRecognized(null);
+    setResult(null);
+    setItems([]);
     setErrorMsg("");
     try {
       const res = await fetch("/api/recognize-meal", {
@@ -47,13 +69,14 @@ export function NutritionScreen() {
         setPhase("error");
         return;
       }
-      const meal = data as RecognizedMeal;
-      if (!meal.isFood) {
+      const meal = data as RecognizeResponse;
+      if (!meal.isFood || meal.items.length === 0) {
         setErrorMsg("На фото не удалось распознать еду. Попробуйте снять блюдо крупнее.");
         setPhase("error");
         return;
       }
-      setRecognized(meal);
+      setResult(meal);
+      setItems(meal.items);
       setPhase("result");
     } catch {
       setErrorMsg("Нет связи с сервером. Проверьте подключение и повторите.");
@@ -67,15 +90,20 @@ export function NutritionScreen() {
     recognize(dataUrl);
   };
 
+  const setGrams = (idx: number, grams: number) =>
+    setItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, grams: Math.max(0, Math.min(3000, grams)) } : it)),
+    );
+
   const handleAdd = () => {
-    if (!recognized) return;
+    if (!result) return;
     const meal: Meal = {
       id: `meal-${Date.now()}`,
-      name: recognized.name,
-      kcal: recognized.kcal,
-      protein: recognized.protein,
-      fat: recognized.fat,
-      carbs: recognized.carbs,
+      name: result.dish,
+      kcal: r(totals.kcal),
+      protein: r(totals.protein),
+      fat: r(totals.fat),
+      carbs: r(totals.carbs),
       time: nowTime(),
       emoji: "🍽️",
       photo: photo ?? undefined,
@@ -84,7 +112,8 @@ export function NutritionScreen() {
     setPhase("added");
     setTimeout(() => {
       setPhase("idle");
-      setRecognized(null);
+      setResult(null);
+      setItems([]);
       setPhoto(null);
     }, 1200);
   };
@@ -163,7 +192,7 @@ export function NutritionScreen() {
             </div>
           )}
 
-          {(phase === "result" || phase === "added") && recognized && (
+          {(phase === "result" || phase === "added") && result && (
             <div className="mt-4 animate-fade-in">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
@@ -171,21 +200,22 @@ export function NutritionScreen() {
                     <Sparkles className="h-3.5 w-3.5 text-brand" />
                     Распознано ИИ
                   </p>
-                  <p className="truncate text-[17px] font-semibold text-ink">{recognized.name}</p>
+                  <p className="truncate text-[17px] font-semibold text-ink">{result.dish}</p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-[12px] font-medium ${confidenceMeta[recognized.confidence].cls}`}
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[12px] font-medium ${confidenceMeta[result.confidence].cls}`}
                 >
-                  {confidenceMeta[recognized.confidence].label}
+                  {confidenceMeta[result.confidence].label}
                 </span>
               </div>
 
+              {/* Итоговая ценность (пересчитывается при правке граммов) */}
               <div className="mt-3 grid grid-cols-4 gap-2 text-center">
                 {[
-                  { label: "ккал", value: recognized.kcal },
-                  { label: "белки", value: `${recognized.protein} г` },
-                  { label: "жиры", value: `${recognized.fat} г` },
-                  { label: "углев.", value: `${recognized.carbs} г` },
+                  { label: "ккал", value: r(totals.kcal) },
+                  { label: "белки", value: `${r(totals.protein)} г` },
+                  { label: "жиры", value: `${r(totals.fat)} г` },
+                  { label: "углев.", value: `${r(totals.carbs)} г` },
                 ].map((cell) => (
                   <div key={cell.label} className="rounded-btn bg-bg py-2">
                     <p className="text-[15px] font-semibold text-ink">{cell.value}</p>
@@ -194,8 +224,23 @@ export function NutritionScreen() {
                 ))}
               </div>
 
-              <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                ≈ Приблизительная оценка по фото, не точное измерение.
+              {/* Компоненты с редактируемым весом */}
+              <div className="mt-3 flex flex-col divide-y divide-border">
+                {items.map((it, idx) => (
+                  <ComponentRow
+                    key={idx}
+                    item={it}
+                    kcal={r((it.per100.kcal * it.grams) / 100)}
+                    disabled={phase === "added"}
+                    onChange={(g) => setGrams(idx, g)}
+                  />
+                ))}
+              </div>
+
+              <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                {usesUsda
+                  ? "Ккал на 100 г — из базы USDA. Вес оценён ИИ по фото — поправьте граммы, если нужно."
+                  : "≈ Оценка ИИ (база не нашла совпадений). Вес и ккал можно поправить."}
               </p>
 
               <Button
@@ -212,7 +257,7 @@ export function NutritionScreen() {
                 ) : (
                   <>
                     <Plus className="h-5 w-5" />
-                    Добавить в дневник
+                    Добавить · {r(totals.kcal)} ккал
                   </>
                 )}
               </Button>
@@ -249,6 +294,71 @@ export function NutritionScreen() {
       {cameraOpen && (
         <CameraCapture onCapture={handleCaptured} onClose={() => setCameraOpen(false)} />
       )}
+    </div>
+  );
+}
+
+// Строка компонента: название + источник, степпер веса, ккал компонента.
+function ComponentRow({
+  item,
+  kcal,
+  disabled,
+  onChange,
+}: {
+  item: MealComponent;
+  kcal: number;
+  disabled: boolean;
+  onChange: (grams: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 py-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-medium text-ink">{item.name}</p>
+        <p className="truncate text-[11px] text-muted">
+          {item.source === "usda" ? (
+            <>
+              USDA{item.matchedName ? `: ${item.matchedName}` : ""}
+            </>
+          ) : (
+            "оценка ИИ"
+          )}
+        </p>
+      </div>
+
+      {/* Степпер веса */}
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onChange(item.grams - 10)}
+          disabled={disabled}
+          aria-label="Меньше"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
+        >
+          <Minus className="h-3.5 w-3.5" />
+        </button>
+        <div className="flex w-14 items-center justify-center gap-0.5">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={item.grams}
+            disabled={disabled}
+            onChange={(e) => onChange(parseInt(e.target.value || "0", 10))}
+            className="w-9 bg-transparent text-right text-[14px] font-semibold text-ink outline-none [appearance:textfield] disabled:opacity-60 [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <span className="text-[12px] text-muted">г</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange(item.grams + 10)}
+          disabled={disabled}
+          aria-label="Больше"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <span className="w-16 shrink-0 text-right text-[14px] font-semibold text-ink">{kcal} ккал</span>
     </div>
   );
 }
