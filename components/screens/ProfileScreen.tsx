@@ -20,7 +20,7 @@ import { Card } from "@/components/ui/Card";
 import { useData } from "@/components/data/DataProvider";
 import { EditProfileScreen } from "@/components/screens/EditProfileScreen";
 
-export function ProfileScreen({ onBack }: { onBack: () => void }) {
+export function ProfileScreen({ onBack }: { onBack?: () => void }) {
   const { patient, doctor, sensor, signOut } = useData();
   const [editing, setEditing] = useState(false);
 
@@ -30,9 +30,11 @@ export function ProfileScreen({ onBack }: { onBack: () => void }) {
     <div className="-mx-4 -mt-4 flex flex-col">
       {/* Шапка */}
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
-        <button onClick={onBack} aria-label="Назад" className="text-muted">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
+        {onBack && (
+          <button onClick={onBack} aria-label="Назад" className="text-muted">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        )}
         <h1 className="text-[17px] font-semibold text-ink">Личный кабинет</h1>
         <button
           onClick={() => setEditing(true)}

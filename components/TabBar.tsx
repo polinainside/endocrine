@@ -1,14 +1,15 @@
 "use client";
 
-import { LayoutDashboard, Activity, Camera, Stethoscope, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Activity, Utensils, Stethoscope, User, type LucideIcon } from "lucide-react";
 
-export type TabKey = "home" | "labs" | "nutrition" | "doctor";
+export type TabKey = "home" | "labs" | "nutrition" | "doctor" | "profile";
 
 const tabs: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: "home", label: "Главная", icon: LayoutDashboard },
   { key: "labs", label: "Анализы", icon: Activity },
-  { key: "nutrition", label: "Питание", icon: Camera },
+  { key: "nutrition", label: "Питание", icon: Utensils },
   { key: "doctor", label: "Врач", icon: Stethoscope },
+  { key: "profile", label: "Профиль", icon: User },
 ];
 
 export function TabBar({

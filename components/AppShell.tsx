@@ -7,12 +7,14 @@ import { HomeScreen } from "@/components/screens/HomeScreen";
 import { LabsScreen } from "@/components/screens/LabsScreen";
 import { NutritionScreen } from "@/components/screens/NutritionScreen";
 import { DoctorScreen } from "@/components/screens/DoctorScreen";
+import { ProfileScreen } from "@/components/screens/ProfileScreen";
 
 const screens: Record<TabKey, () => JSX.Element> = {
   home: HomeScreen,
   labs: LabsScreen,
   nutrition: NutritionScreen,
   doctor: DoctorScreen,
+  profile: () => <ProfileScreen />,
 };
 
 // Вкладки приложения. Рендерится после авторизации и загрузки данных (внутри DataProvider).

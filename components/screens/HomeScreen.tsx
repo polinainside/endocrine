@@ -13,7 +13,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Check,
-  ChevronRight,
   Sparkles,
   Scale,
   Footprints,
@@ -24,7 +23,6 @@ import {
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricTile } from "@/components/ui/MetricTile";
-import { ProfileScreen } from "@/components/screens/ProfileScreen";
 import { MedsEditScreen } from "@/components/screens/MedsEditScreen";
 import { useData } from "@/components/data/DataProvider";
 import { aiHint, glucoseNow, glucoseToday, type Trend } from "@/lib/mock";
@@ -42,11 +40,9 @@ const todayLabel = new Intl.DateTimeFormat("ru-RU", {
 
 export function HomeScreen() {
   const { patient, meds, toggleMed } = useData();
-  const [profileOpen, setProfileOpen] = useState(false);
   const [medsEditOpen, setMedsEditOpen] = useState(false);
   const TrendIcon = trendIcon[glucoseNow.trend];
 
-  if (profileOpen) return <ProfileScreen onBack={() => setProfileOpen(false)} />;
   if (medsEditOpen) return <MedsEditScreen onBack={() => setMedsEditOpen(false)} />;
 
   return (
@@ -59,13 +55,6 @@ export function HomeScreen() {
             Здравствуйте, {patient.name}
           </h1>
         </div>
-        <button
-          onClick={() => setProfileOpen(true)}
-          aria-label="Личный кабинет"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-[15px] font-semibold text-brand transition-transform active:scale-95"
-        >
-          {patient.initials}
-        </button>
       </header>
 
       {/* Карточка глюкозы */}
@@ -84,11 +73,8 @@ export function HomeScreen() {
           <StatusBadge status={glucoseNow.status} />
         </div>
 
-        {/* Живой индикатор автоматического датчика → ведёт в кабинет к описанию */}
-        <button
-          onClick={() => setProfileOpen(true)}
-          className="mt-1.5 flex w-full items-center gap-2 text-left text-[12px] text-muted transition-colors hover:text-ink"
-        >
+        {/* Живой индикатор автоматического датчика */}
+        <div className="mt-1.5 flex w-full items-center gap-2 text-[12px] text-muted">
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ok opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-ok" />
@@ -96,8 +82,7 @@ export function HomeScreen() {
           <span>
             Датчик {glucoseNow.source} · подключён · обновлено {glucoseNow.agoMin} мин назад
           </span>
-          <ChevronRight className="ml-auto h-4 w-4 shrink-0" />
-        </button>
+        </div>
 
         {/* Мини-график за день */}
         <div className="-mx-1 mt-3 h-24">
