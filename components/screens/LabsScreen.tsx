@@ -92,7 +92,7 @@ export function LabsScreen() {
           <div>
             <p className="text-[13px] font-medium text-muted">{series.title}</p>
             <div className="mt-1 flex items-end gap-1.5">
-              <span className="text-[48px] font-light leading-none tracking-tight text-ink">{animLast}</span>
+              <span className="text-[44px] font-light leading-none tracking-tight text-ink tabular-nums">{animLast}</span>
               <span className="mb-1.5 text-[15px] text-muted">{series.unit}</span>
             </div>
             <p className="mt-1 text-[13px] text-muted">сдано {last.date}</p>

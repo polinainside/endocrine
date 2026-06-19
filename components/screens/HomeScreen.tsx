@@ -18,6 +18,7 @@ import {
   Footprints,
   CalendarClock,
   Pencil,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
@@ -69,7 +70,7 @@ export function HomeScreen() {
       <header className="flex items-center justify-between">
         <div>
           <p className="text-[14px] capitalize text-muted">{todayLabel}</p>
-          <h1 className="mt-0.5 text-[25px] font-semibold leading-tight text-ink">
+          <h1 className="mt-0.5 text-[22px] font-semibold leading-tight text-ink">
             Здравствуйте, {patient.name}
           </h1>
         </div>
@@ -79,9 +80,12 @@ export function HomeScreen() {
       <Card onClick={() => setGlucoseDetailOpen(true)}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[13px] font-medium text-muted">Глюкоза сейчас</p>
+            <p className="flex items-center gap-1 text-[13px] font-medium text-muted">
+              Глюкоза сейчас
+              <ChevronRight className="h-3.5 w-3.5" />
+            </p>
             <div className="mt-1 flex items-end gap-2">
-              <span className="text-[56px] font-light leading-none tracking-tight text-ink">
+              <span className="text-[52px] font-light leading-none tracking-tight text-ink tabular-nums">
                 {animGlucose}
               </span>
               <span className="mb-1.5 text-[15px] text-muted">{glucoseNow.unit}</span>
@@ -180,7 +184,7 @@ export function HomeScreen() {
           <h2 className="text-[16px] font-semibold text-ink">Приём препаратов сегодня</h2>
           <button
             onClick={() => setMedsEditOpen(true)}
-            className="inline-flex items-center gap-1 text-[13px] font-medium text-brand"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-brand-ink"
           >
             <Pencil className="h-3.5 w-3.5" />
             Изменить

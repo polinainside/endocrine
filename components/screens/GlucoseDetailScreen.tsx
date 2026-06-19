@@ -141,7 +141,7 @@ export function GlucoseDetailScreen({ onBack }: { onBack: () => void }) {
           ].map((s) => (
             <div
               key={s.label}
-              className="flex flex-1 flex-col items-center rounded-card border border-border bg-gradient-to-b from-white to-[#F4F2EE] py-3 shadow-card"
+              className="flex flex-1 flex-col items-center rounded-card border border-border bg-gradient-to-b from-white to-raised py-3 shadow-card"
             >
               <span className="text-[22px] font-light tracking-tight text-ink">{s.value}</span>
               <span className="text-[12px] text-muted">{s.label}</span>

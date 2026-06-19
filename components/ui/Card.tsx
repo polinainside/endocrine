@@ -12,7 +12,7 @@ export function Card({
   // plain — без градиента (когда нужен свой фон, например тонированные карточки)
   plain?: boolean;
 }) {
-  const surface = plain ? "" : "bg-gradient-to-b from-white to-[#F4F2EE]";
+  const surface = plain ? "" : "bg-gradient-to-b from-white to-raised";
   return (
     <div
       onClick={onClick}

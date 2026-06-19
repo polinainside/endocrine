@@ -54,7 +54,7 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
         <h1 className="text-[22px] font-semibold text-ink">Личный кабинет</h1>
         <button
           onClick={() => setEditing(true)}
-          className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-brand"
+          className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-brand-ink"
         >
           <Pencil className="h-4 w-4" />
           Изменить
@@ -77,7 +77,7 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
 
         {/* Датчик NovaSense — источник автоматических данных */}
         <div>
-          <h2 className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-muted">
+          <h2 className="mb-2 text-[16px] font-semibold text-ink">
             Датчик глюкозы
           </h2>
           <Card>
@@ -118,7 +118,7 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
 
         {/* Медкарта */}
         <div>
-          <h2 className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-muted">
+          <h2 className="mb-2 text-[16px] font-semibold text-ink">
             Медкарта
           </h2>
           <Card>

@@ -8,6 +8,11 @@ export function useCountUp(target: number, opts: { duration?: number; decimals?:
   const raf = useRef<number | undefined>(undefined);
 
   useEffect(() => {
+    // Уважаем «уменьшить движение» — показываем итог сразу, без анимации.
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setVal(target);
+      return;
+    }
     let start: number | null = null;
     const tick = (ts: number) => {
       if (start === null) start = ts;

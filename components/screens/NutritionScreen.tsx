@@ -56,7 +56,7 @@ export function NutritionScreen() {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[13px] text-muted">В среднем за неделю</p>
-            <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
+            <p className="text-[30px] font-light leading-tight tracking-tight text-ink tabular-nums">
               {animWeek}{" "}
               <span className="text-[15px] font-normal text-muted">ккал/день</span>
             </p>
@@ -94,7 +94,7 @@ export function NutritionScreen() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[13px] text-muted">{selected.label}</p>
-            <p className="text-[30px] font-light leading-tight tracking-tight text-ink">
+            <p className="text-[30px] font-light leading-tight tracking-tight text-ink tabular-nums">
               {animDay} <span className="text-[15px] font-normal text-muted">ккал</span>
             </p>
             <p className="mt-1 text-[13px] text-muted">

@@ -121,11 +121,11 @@ export function LoginScreen() {
       >
         {mode === "signin" ? (
           <>
-            Нет аккаунта? <span className="font-medium text-brand">Зарегистрироваться</span>
+            Нет аккаунта? <span className="font-medium text-brand-ink">Зарегистрироваться</span>
           </>
         ) : (
           <>
-            Уже есть аккаунт? <span className="font-medium text-brand">Войти</span>
+            Уже есть аккаунт? <span className="font-medium text-brand-ink">Войти</span>
           </>
         )}
       </button>

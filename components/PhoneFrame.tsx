@@ -29,7 +29,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
         className="relative h-[100dvh] w-full bg-[#1b1b1f] sm:h-[844px] sm:w-[390px] sm:rounded-[58px] sm:p-[13px] sm:shadow-[0_40px_80px_-25px_rgba(15,37,64,0.55)] sm:[transform-origin:center] sm:[transform:scale(var(--frame-scale))]"
       >
         {/* Экран */}
-        <div className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-[#FCEFE7] via-bg to-bg sm:rounded-[46px]">
+        <div className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-glow via-bg to-bg pt-[env(safe-area-inset-top)] sm:rounded-[46px] sm:pt-0">
           {/* Статус-бар (только в рамке на десктопе), без чёлки */}
           <div className="z-40 hidden h-[44px] shrink-0 items-end justify-between px-6 pb-1.5 text-[14px] font-semibold text-ink sm:flex">
             <span className="tracking-tight">9:41</span>

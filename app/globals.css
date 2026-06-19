@@ -41,3 +41,22 @@ body {
 .stagger > *:nth-child(7) { animation-delay: 300ms; }
 .stagger > *:nth-child(8) { animation-delay: 340ms; }
 .stagger > *:nth-child(n + 9) { animation-delay: 380ms; }
+
+/* Видимый фокус для навигации с клавиатуры */
+:focus-visible {
+  outline: 2px solid #e36c39;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Уважать системную настройку «уменьшить движение» */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

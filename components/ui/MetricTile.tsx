@@ -12,7 +12,7 @@ export function MetricTile({
   source?: string;
 }) {
   return (
-    <div className="flex flex-1 flex-col gap-1.5 rounded-card border border-border bg-gradient-to-b from-white to-[#F4F2EE] p-3 shadow-card">
+    <div className="flex flex-1 flex-col gap-1.5 rounded-card border border-border bg-gradient-to-b from-white to-raised p-3 shadow-card">
       <Icon className="h-4 w-4 text-brand" strokeWidth={2.2} />
       <span className="text-[22px] font-light leading-tight tracking-tight text-ink">{value}</span>
       <span className="text-[12px] leading-tight text-muted">{label}</span>

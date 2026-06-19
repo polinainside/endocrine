@@ -271,7 +271,7 @@ function ComponentRow({
           onClick={() => onChange(item.grams - 10)}
           disabled={disabled}
           aria-label="Меньше"
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
@@ -291,7 +291,7 @@ function ComponentRow({
           onClick={() => onChange(item.grams + 10)}
           disabled={disabled}
           aria-label="Больше"
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted disabled:opacity-40"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>

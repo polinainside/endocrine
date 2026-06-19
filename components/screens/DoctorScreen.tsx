@@ -74,7 +74,7 @@ export function DoctorScreen() {
           </div>
           <button
             onClick={() => setRescheduleOpen(true)}
-            className="text-[14px] font-medium text-brand"
+            className="text-[14px] font-medium text-brand-ink"
           >
             Перенести
           </button>

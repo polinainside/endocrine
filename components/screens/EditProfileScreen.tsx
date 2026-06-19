@@ -175,7 +175,7 @@ export function EditProfileScreen({ onBack }: { onBack: () => void }) {
             <button
               type="button"
               onClick={() => setDiagnoses((prev) => [...prev, { title: "", code: "" }])}
-              className="inline-flex items-center gap-1.5 self-start text-[14px] font-medium text-brand"
+              className="inline-flex items-center gap-1.5 self-start text-[14px] font-medium text-brand-ink"
             >
               <Plus className="h-4 w-4" /> Добавить диагноз
             </button>

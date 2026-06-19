@@ -78,7 +78,7 @@ export function DataProvider({ userId, children }: { userId: string; children: R
     return (
       <Center>
         <p className="text-[14px] text-muted">{error}</p>
-        <button onClick={load} className="inline-flex items-center gap-1.5 text-[14px] font-medium text-brand">
+        <button onClick={load} className="inline-flex items-center gap-1.5 text-[14px] font-medium text-brand-ink">
           <RotateCcw className="h-4 w-4" /> Повторить
         </button>
         <button onClick={signOut} className="text-[13px] text-muted underline">

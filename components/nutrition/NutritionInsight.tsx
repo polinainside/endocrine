@@ -171,7 +171,7 @@ export function NutritionInsight({ week }: { week: DayLog[] }) {
 
           <button
             onClick={run}
-            className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-brand"
+            className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-brand-ink"
           >
             <RotateCcw className="h-4 w-4" />
             Проанализировать заново
