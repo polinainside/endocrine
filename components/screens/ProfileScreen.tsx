@@ -20,6 +20,22 @@ import { Card } from "@/components/ui/Card";
 import { useData } from "@/components/data/DataProvider";
 import { EditProfileScreen } from "@/components/screens/EditProfileScreen";
 
+// «17111999» → «17.11.1999»; иначе оставляем как есть.
+function fmtBirth(s: string): string {
+  const d = s.replace(/\D/g, "");
+  return d.length === 8 ? `${d.slice(0, 2)}.${d.slice(2, 4)}.${d.slice(4)}` : s;
+}
+
+// Склонение «год / года / лет».
+function ageWord(n: number): string {
+  const a = Math.abs(n) % 100;
+  const b = n % 10;
+  if (a > 10 && a < 20) return "лет";
+  if (b === 1) return "год";
+  if (b >= 2 && b <= 4) return "года";
+  return "лет";
+}
+
 export function ProfileScreen({ onBack }: { onBack?: () => void }) {
   const { patient, doctor, sensor, signOut } = useData();
   const [editing, setEditing] = useState(false);
@@ -27,15 +43,15 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
   if (editing) return <EditProfileScreen onBack={() => setEditing(false)} />;
 
   return (
-    <div className="-mx-4 -mt-4 flex flex-col">
+    <div className="flex flex-col gap-4 stagger">
       {/* Шапка */}
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
+      <header className="flex items-center gap-2">
         {onBack && (
           <button onClick={onBack} aria-label="Назад" className="text-muted">
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-[17px] font-semibold text-ink">Личный кабинет</h1>
+        <h1 className="text-[22px] font-semibold text-ink">Личный кабинет</h1>
         <button
           onClick={() => setEditing(true)}
           className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-brand"
@@ -45,8 +61,7 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
         </button>
       </header>
 
-      <div className="flex flex-col gap-4 px-4 pb-4 pt-4">
-        {/* Карточка пациента */}
+      {/* Карточка пациента */}
         <Card className="flex items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-[20px] font-semibold text-brand">
             {patient.initials}
@@ -54,7 +69,7 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
           <div>
             <p className="text-[17px] font-semibold text-ink">{patient.fullName}</p>
             <p className="text-[13px] text-muted">
-              {patient.age} года · {patient.sex} · {patient.birthDate}
+              {patient.age} {ageWord(patient.age)} · {patient.sex} · {fmtBirth(patient.birthDate)}
             </p>
             <p className="mt-0.5 text-[12px] text-muted">ID пациента: {patient.patientId}</p>
           </div>
@@ -157,7 +172,6 @@ export function ProfileScreen({ onBack }: { onBack?: () => void }) {
           <LogOut className="h-5 w-5" />
           Выйти
         </button>
-      </div>
     </div>
   );
 }
