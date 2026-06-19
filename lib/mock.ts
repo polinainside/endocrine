@@ -190,6 +190,89 @@ export const labs: Record<string, LabSeries> = {
 
 export const labOrder = ["hba1c", "fastingGlu", "tsh", "cholesterol"] as const;
 
+// Каталог показателей — канонический набор и порядок. Приложение дозаписывает
+// недостающие показатели в БД пользователя при загрузке (см. lib/supabase/data).
+// Добавил щитовидную панель: Т4 свободный, Т3 свободный, АТ-ТПО.
+export const labCatalog: (LabSeries & { sort: number })[] = [
+  {
+    key: "hba1c", title: "HbA1c", unit: "%", target: 6.5, targetLabel: "цель < 6.5%", sort: 0,
+    history: [
+      { date: "12.2025", value: 8.1, status: "alarm" },
+      { date: "01.2026", value: 7.6, status: "alarm" },
+      { date: "02.2026", value: 7.2, status: "warn" },
+      { date: "03.2026", value: 6.9, status: "warn" },
+      { date: "04.2026", value: 6.7, status: "warn" },
+      { date: "05.2026", value: 6.4, status: "ok" },
+    ],
+  },
+  {
+    key: "fastingGlu", title: "Глюкоза натощак", unit: "ммоль/л", target: 5.5, targetLabel: "цель < 5.5", sort: 1,
+    history: [
+      { date: "12.2025", value: 7.8, status: "alarm" },
+      { date: "01.2026", value: 7.1, status: "alarm" },
+      { date: "02.2026", value: 6.6, status: "warn" },
+      { date: "03.2026", value: 6.2, status: "warn" },
+      { date: "04.2026", value: 5.8, status: "warn" },
+      { date: "05.2026", value: 5.4, status: "ok" },
+    ],
+  },
+  {
+    key: "tsh", title: "ТТГ", unit: "мМЕ/л", target: 4.0, targetLabel: "норма 0.4–4.0", sort: 2,
+    history: [
+      { date: "12.2025", value: 3.1, status: "ok" },
+      { date: "01.2026", value: 3.4, status: "ok" },
+      { date: "02.2026", value: 3.0, status: "ok" },
+      { date: "03.2026", value: 2.8, status: "ok" },
+      { date: "04.2026", value: 2.9, status: "ok" },
+      { date: "05.2026", value: 2.6, status: "ok" },
+    ],
+  },
+  {
+    key: "t4", title: "Т4 свободный", unit: "пмоль/л", target: 19, targetLabel: "норма 9–19", sort: 3,
+    history: [
+      { date: "12.2025", value: 7.8, status: "alarm" },
+      { date: "01.2026", value: 9.2, status: "warn" },
+      { date: "02.2026", value: 10.5, status: "ok" },
+      { date: "03.2026", value: 11.8, status: "ok" },
+      { date: "04.2026", value: 12.5, status: "ok" },
+      { date: "05.2026", value: 13.1, status: "ok" },
+    ],
+  },
+  {
+    key: "t3", title: "Т3 свободный", unit: "пмоль/л", target: 5.7, targetLabel: "норма 2.6–5.7", sort: 4,
+    history: [
+      { date: "12.2025", value: 3.1, status: "ok" },
+      { date: "01.2026", value: 3.4, status: "ok" },
+      { date: "02.2026", value: 3.7, status: "ok" },
+      { date: "03.2026", value: 3.9, status: "ok" },
+      { date: "04.2026", value: 4.1, status: "ok" },
+      { date: "05.2026", value: 4.2, status: "ok" },
+    ],
+  },
+  {
+    key: "atpo", title: "АТ-ТПО", unit: "МЕ/мл", target: 34, targetLabel: "норма < 34", sort: 5,
+    history: [
+      { date: "12.2025", value: 145, status: "alarm" },
+      { date: "01.2026", value: 132, status: "alarm" },
+      { date: "02.2026", value: 120, status: "alarm" },
+      { date: "03.2026", value: 110, status: "alarm" },
+      { date: "04.2026", value: 102, status: "alarm" },
+      { date: "05.2026", value: 95, status: "warn" },
+    ],
+  },
+  {
+    key: "cholesterol", title: "Холестерин", unit: "ммоль/л", target: 5.0, targetLabel: "цель < 5.0", sort: 6,
+    history: [
+      { date: "12.2025", value: 6.2, status: "alarm" },
+      { date: "01.2026", value: 5.9, status: "warn" },
+      { date: "02.2026", value: 5.6, status: "warn" },
+      { date: "03.2026", value: 5.4, status: "warn" },
+      { date: "04.2026", value: 5.2, status: "warn" },
+      { date: "05.2026", value: 4.9, status: "ok" },
+    ],
+  },
+];
+
 // ── Питание ────────────────────────────────────────────────────────────────
 
 export type Meal = {
@@ -378,3 +461,55 @@ export const chatSeed: ChatMessage[] = [
 // Фейковый автоответ врача после отправки сообщения.
 export const doctorAutoReply =
   "Принято, Анна. Посмотрю динамику и вернусь с комментарием к приёму. Хорошего дня!";
+
+// ── Протоколы приёмов и рекомендации (мок) ──────────────────────────────────
+export type Visit = {
+  id: string;
+  date: string;
+  doctor: string;
+  summary: string;
+  recommendations: string[];
+};
+
+export const visits: Visit[] = [
+  {
+    id: "v1",
+    date: "12 мая 2026",
+    doctor: "Иванова М. П. · эндокринолог",
+    summary:
+      "Сахарный диабет 2 типа в стадии компенсации: HbA1c снизился до 6.4%. Гипотиреоз на фоне терапии — ТТГ и Т4 свободный в норме.",
+    recommendations: [
+      "Продолжить метформин в текущей дозе",
+      "Левотироксин — без изменений",
+      "Контроль HbA1c через 3 месяца",
+      "Физическая активность не менее 30 минут в день",
+      "Ограничить быстрые углеводы",
+    ],
+  },
+  {
+    id: "v2",
+    date: "10 марта 2026",
+    doctor: "Иванова М. П. · эндокринолог",
+    summary:
+      "Положительная динамика по глюкозе. Сохраняется повышение АТ-ТПО — картина аутоиммунного тиреоидита.",
+    recommendations: [
+      "Скорректирована доза левотироксина",
+      "Контроль Т4 свободного через 6 недель",
+      "Продолжить дневник питания",
+      "Проверить липидный профиль",
+    ],
+  },
+  {
+    id: "v3",
+    date: "15 января 2026",
+    doctor: "Иванова М. П. · эндокринолог",
+    summary:
+      "Первичная коррекция терапии. HbA1c 7.6%, холестерин повышен. Начат контроль питания и физической активности.",
+    recommendations: [
+      "Назначен метформин",
+      "Диета с ограничением сахара",
+      "Ежедневные прогулки",
+      "Повторный приём через 2 месяца",
+    ],
+  },
+];

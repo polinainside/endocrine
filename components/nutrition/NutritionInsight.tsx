@@ -37,8 +37,8 @@ function labSnapshots(labs: Record<string, LabSeries>, labOrder: string[]): LabS
     const last = h[h.length - 1];
     const prev = h[h.length - 2] ?? last;
     let trend: LabSnapshot["trend"] = "stable";
-    if (key !== "tsh") {
-      // Для этих маркеров ниже — лучше.
+    if (!["tsh", "t4", "t3"].includes(key)) {
+      // Для этих маркеров ниже — лучше (HbA1c, глюкоза, холестерин, АТ-ТПО).
       if (last.value < prev.value) trend = "improving";
       else if (last.value > prev.value) trend = "worsening";
     }

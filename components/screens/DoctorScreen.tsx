@@ -8,11 +8,13 @@ import {
   ShieldCheck,
   ArrowLeft,
   Send,
+  ClipboardList,
+  Check,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { chatSeed, doctorAutoReply, type ChatMessage } from "@/lib/mock";
+import { chatSeed, doctorAutoReply, visits, type ChatMessage } from "@/lib/mock";
 import { useData } from "@/components/data/DataProvider";
 
 export function DoctorScreen() {
@@ -78,6 +80,37 @@ export function DoctorScreen() {
           </button>
         </div>
       </Card>
+
+      {/* Протоколы приёмов и рекомендации */}
+      <div>
+        <h2 className="mb-2 flex items-center gap-2 text-[16px] font-semibold text-ink">
+          <ClipboardList className="h-[18px] w-[18px] text-brand" strokeWidth={2.2} />
+          Протоколы приёмов
+        </h2>
+        <div className="flex flex-col gap-2.5">
+          {visits.map((v) => (
+            <Card key={v.id}>
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[15px] font-semibold text-ink">{v.date}</p>
+                <span className="shrink-0 text-[12px] text-muted">приём</span>
+              </div>
+              <p className="text-[12px] text-muted">{v.doctor}</p>
+              <p className="mt-2 text-[14px] leading-relaxed text-ink/90">{v.summary}</p>
+              <div className="mt-3 border-t border-border pt-3">
+                <p className="mb-1.5 text-[13px] font-medium text-muted">Рекомендации</p>
+                <ul className="flex flex-col gap-1.5">
+                  {v.recommendations.map((r, i) => (
+                    <li key={i} className="flex gap-2 text-[14px] leading-relaxed text-ink/90">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" strokeWidth={2.4} />
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       {/* Плашка доверия / 152-ФЗ */}
       <div className="flex items-center justify-center gap-1.5 px-4 text-center text-[12px] text-muted">

@@ -24,11 +24,20 @@ type DataContextValue = AppData & {
   signOut: () => Promise<void>;
 };
 
-// Статус значения относительно цели (приблизительно, для подсветки точки).
+// Диапазонные показатели (норма в интервале). Остальные — «ниже = лучше».
+const LAB_RANGES: Record<string, [number, number]> = {
+  tsh: [0.4, 4.0],
+  t4: [9, 19],
+  t3: [2.6, 5.7],
+};
+
+// Статус значения относительно нормы (приблизительно, для подсветки точки).
 function computeStatus(series: { key: string; target: number }, value: number): Status {
-  if (series.key === "tsh") {
-    if (value >= 0.4 && value <= series.target) return "ok";
-    if (value >= 0.3 && value <= series.target * 1.25) return "warn";
+  const range = LAB_RANGES[series.key];
+  if (range) {
+    const [lo, hi] = range;
+    if (value >= lo && value <= hi) return "ok";
+    if (value >= lo * 0.8 && value <= hi * 1.2) return "warn";
     return "alarm";
   }
   if (value <= series.target) return "ok";
@@ -54,7 +63,7 @@ export function DataProvider({ userId, children }: { userId: string; children: R
 
   const load = () => {
     setError("");
-    loadAppData(supabase)
+    loadAppData(supabase, userId)
       .then(setData)
       .catch((e) => setError(e?.message || "Не удалось загрузить данные"));
   };

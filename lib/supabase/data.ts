@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { labCatalog } from "@/lib/mock";
 import type { DayLog, LabPoint, LabSeries, Meal, Med } from "@/lib/mock";
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ export function buildWeek(client: SupabaseClient, rows: Record<string, unknown>[
   return week;
 }
 
-export async function loadAppData(client: SupabaseClient): Promise<AppData> {
+export async function loadAppData(client: SupabaseClient, userId: string): Promise<AppData> {
   const [profileRes, labsRes, medsRes, mealsRes] = await Promise.all([
     client.from("profiles").select("*").maybeSingle(),
     client.from("labs").select("*").order("sort"),
@@ -150,7 +151,6 @@ export async function loadAppData(client: SupabaseClient): Promise<AppData> {
   };
 
   const labs: Record<string, LabSeries> = {};
-  const labOrder: string[] = [];
   for (const row of labsRes.data ?? []) {
     labs[row.key] = {
       key: row.key,
@@ -160,8 +160,41 @@ export async function loadAppData(client: SupabaseClient): Promise<AppData> {
       targetLabel: row.target_label,
       history: Array.isArray(row.history) ? row.history : [],
     };
-    labOrder.push(row.key);
   }
+
+  // Самозаполнение: дозаписываем недостающие показатели из каталога (под RLS).
+  const missing = labCatalog.filter((c) => !labs[c.key]);
+  if (missing.length) {
+    const { error } = await client.from("labs").insert(
+      missing.map((c) => ({
+        user_id: userId,
+        key: c.key,
+        title: c.title,
+        unit: c.unit,
+        target: c.target,
+        target_label: c.targetLabel,
+        history: c.history,
+        sort: c.sort,
+      })),
+    );
+    if (!error) {
+      for (const c of missing) {
+        labs[c.key] = {
+          key: c.key,
+          title: c.title,
+          unit: c.unit,
+          target: c.target,
+          targetLabel: c.targetLabel,
+          history: c.history,
+        };
+      }
+    } else {
+      console.error("ensure labs failed", error.message);
+    }
+  }
+
+  // Порядок — канонический из каталога (только присутствующие).
+  const labOrder = labCatalog.map((c) => c.key).filter((k) => labs[k]);
 
   const meds: Med[] = (medsRes.data ?? []).map((m) => ({
     id: String(m.id),
